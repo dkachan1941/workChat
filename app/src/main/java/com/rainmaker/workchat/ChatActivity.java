@@ -63,6 +63,7 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig;
 import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings;
 import com.google.firebase.storage.FirebaseStorage;
@@ -83,12 +84,30 @@ public class ChatActivity extends AppCompatActivity implements
         TextView messengerTextView;
         CircleImageView messengerImageView;
 
+        private MessageViewHolder.ClickListener mClickListener;
+
+        //Interface to send callbacks...
+        public interface ClickListener {
+            void onItemClick(View view, int position);
+            void onItemLongClick(View view, int position);
+        }
+
+        public void setOnClickListener(MessageViewHolder.ClickListener clickListener){
+            mClickListener = clickListener;
+        }
+
         public MessageViewHolder(View v) {
             super(v);
             messageTextView = (TextView) itemView.findViewById(R.id.messageTextView);
             messageImageView = (ImageView) itemView.findViewById(R.id.messageImageView);
             messengerTextView = (TextView) itemView.findViewById(R.id.messengerTextView);
             messengerImageView = (CircleImageView) itemView.findViewById(R.id.messengerImageView);
+            itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    mClickListener.onItemClick(v, getAdapterPosition());
+                }
+            });
         }
     }
 
@@ -180,12 +199,40 @@ public class ChatActivity extends AppCompatActivity implements
                         .setQuery(messagesRef, parser)
                         .build();
 
+        final TextView textViewNoNewMessages = findViewById(R.id.textViewNoNewMessages);
+        textViewNoNewMessages.setVisibility(View.GONE);
+        messagesRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                //onDataChange called so remove progress bar
+                if (!dataSnapshot.hasChildren()){
+                    mProgressBar.setVisibility(View.GONE);
+                    textViewNoNewMessages.setVisibility(View.VISIBLE);
+                } else {
+                    textViewNoNewMessages.setVisibility(View.GONE);
+                }
+            }
+            @Override
+            public void onCancelled(DatabaseError databaseError) {}
+        });
+
         mFirebaseAdapter = new FirebaseRecyclerAdapter<MessageModel, MessageViewHolder>(options) {
 
             @Override
-            public MessageViewHolder onCreateViewHolder(ViewGroup viewGroup, int i) {
-                LayoutInflater inflater = LayoutInflater.from(viewGroup.getContext());
-                return new MessageViewHolder(inflater.inflate(R.layout.item_message, viewGroup, false));
+            public MessageViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+                LayoutInflater inflater = LayoutInflater.from(parent.getContext());
+                MessageViewHolder viewHolder = new MessageViewHolder(inflater.inflate(R.layout.item_message, parent, false));
+                viewHolder.setOnClickListener(new MessageViewHolder.ClickListener() {
+                    @Override
+                    public void onItemClick(View view, int position) {
+//                        mFirebaseAdapter.getRef(position).getRef().
+                    }
+                    @Override
+                    public void onItemLongClick(View view, int position) {
+//                        Toast.makeText(getActivity(), "Item long clicked at " + position, Toast.LENGTH_SHORT).show();
+                    }
+                });
+                return viewHolder;
             }
 
             @Override
@@ -237,14 +284,6 @@ public class ChatActivity extends AppCompatActivity implements
                             .load(friendlyMessage.getPhotoUrl())
                             .into(viewHolder.messengerImageView);
                 }
-
-                if (friendlyMessage.getText() != null) {
-                    // write this message to the on-device index
-                    FirebaseAppIndex.getInstance().update(getMessageIndexable(friendlyMessage));
-                }
-
-                // log a view action on it
-                FirebaseUserActions.getInstance().end(getMessageViewAction(friendlyMessage));
             }
         };
 
@@ -252,6 +291,7 @@ public class ChatActivity extends AppCompatActivity implements
             @Override
             public void onItemRangeInserted(int positionStart, int itemCount) {
                 super.onItemRangeInserted(positionStart, itemCount);
+                textViewNoNewMessages.setVisibility(View.GONE);
                 int friendlyMessageCount = mFirebaseAdapter.getItemCount();
                 int lastVisiblePosition = mLinearLayoutManager.findLastCompletelyVisibleItemPosition();
                 // If the recycler view is initially being loaded or the user is at the bottom of the list, scroll
@@ -281,7 +321,7 @@ public class ChatActivity extends AppCompatActivity implements
         // Define default config values. Defaults are used when fetched config values are not
         // available. Eg: if an error occurred fetching values from the server.
         Map<String, Object> defaultConfigMap = new HashMap<>();
-        defaultConfigMap.put("friendly_msg_length", 10L);
+        defaultConfigMap.put("friendly_msg_length", 50L);
 
         // Apply config settings and default values.
         mFirebaseRemoteConfig.setConfigSettings(firebaseRemoteConfigSettings);
@@ -336,33 +376,6 @@ public class ChatActivity extends AppCompatActivity implements
         });
     }
 
-    private Action getMessageViewAction(MessageModel friendlyMessage) {
-        return new Action.Builder(Action.Builder.VIEW_ACTION)
-                .setObject(friendlyMessage.getName(), MESSAGE_URL.concat(friendlyMessage.getId()))
-                .setMetadata(new Action.Metadata.Builder().setUpload(false))
-                .build();
-    }
-
-    private Indexable getMessageIndexable(MessageModel friendlyMessage) {
-        PersonBuilder sender = Indexables.personBuilder()
-                .setIsSelf(mUsername.equals(friendlyMessage.getName()))
-                .setName(friendlyMessage.getName())
-                .setUrl(MESSAGE_URL.concat(friendlyMessage.getId() + "/sender"));
-
-        PersonBuilder recipient = Indexables.personBuilder()
-                .setName(mUsername)
-                .setUrl(MESSAGE_URL.concat(friendlyMessage.getId() + "/recipient"));
-
-        Indexable messageToIndex = Indexables.messageBuilder()
-                .setName(friendlyMessage.getText())
-                .setUrl(MESSAGE_URL.concat(friendlyMessage.getId()))
-                .setSender(sender)
-                .setRecipient(recipient)
-                .build();
-
-        return messageToIndex;
-    }
-
     @Override
     public void onPause() {
         mFirebaseAdapter.stopListening();
@@ -378,44 +391,6 @@ public class ChatActivity extends AppCompatActivity implements
     @Override
     public void onDestroy() {
         super.onDestroy();
-    }
-
-//    @Override
-//    public boolean onCreateOptionsMenu(Menu menu) {
-//        MenuInflater inflater = getMenuInflater();
-//        inflater.inflate(R.menu.main_menu, menu);
-//        return true;
-//    }
-
-//    @Override
-//    public boolean onOptionsItemSelected(MenuItem item) {
-//        switch (item.getItemId()) {
-//            case R.id.invite_menu:
-//                sendInvitation();
-//                return true;
-//            case R.id.crash_menu:
-//                FirebaseCrash.logcat(Log.ERROR, TAG, "crash caused");
-//                causeCrash();
-//                return true;
-//            case R.id.sign_out_menu:
-//                mFirebaseAuth.signOut();
-//                Auth.GoogleSignInApi.signOut(mGoogleApiClient);
-//                mFirebaseUser = null;
-//                mUsername = ANONYMOUS;
-//                mPhotoUrl = null;
-//                startActivity(new Intent(this, SignInActivity.class));
-//                finish();
-//                return true;
-//            case R.id.fresh_config_menu:
-//                fetchConfig();
-//                return true;
-//            default:
-//                return super.onOptionsItemSelected(item);
-//        }
-//    }
-
-    private void causeCrash() {
-        throw new NullPointerException("Fake null pointer exception");
     }
 
     private void sendInvitation() {

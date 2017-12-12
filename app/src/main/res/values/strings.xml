@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Friendly Chat</string>
+    <string name="app_name">Work Chat</string>
     <string name="welcome_msg">Welcome!</string>
     <string name="sign_out">Sign Out</string>
     <string name="contacts_permission_rationale">Access to account information is required to sign in.</string>
@@ -15,4 +15,6 @@
     <string name="add_chat">Добавить чат</string>
     <string name="chat_name">Название чата</string>
     <string name="create_chat">Создать чат</string>
+    <string name="no_messages">Нет сообщений</string>
+    <string name="no_chats">Нет доступных диалогов</string>
 </resources>
