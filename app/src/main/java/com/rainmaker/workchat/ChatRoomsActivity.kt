@@ -16,6 +16,7 @@ import com.firebase.ui.database.SnapshotParser
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.database.*
+import com.google.firebase.messaging.FirebaseMessaging
 import de.hdodenhof.circleimageview.CircleImageView
 import kotlinx.android.synthetic.main.activity_chat_rooms.*
 
@@ -60,6 +61,8 @@ class ChatRoomsActivity : AppCompatActivity() {
         mToolbar.title = ""
         setSupportActionBar(mToolbar)
         val mProgressBar = findViewById<ProgressBar>(R.id.progressBar)
+
+        FirebaseMessaging.getInstance().subscribeToTopic("notifications")
 
         checkAuth()
 

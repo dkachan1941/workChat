@@ -5,7 +5,7 @@ android {
     buildToolsVersion "26.0.2"
 
     defaultConfig {
-        applicationId "com.google.firebase.codelab.friendlychat"
+        applicationId "com.rainmaker.workchat"
         minSdkVersion 19
         targetSdkVersion 26
         versionCode 1

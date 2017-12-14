@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "661614499405",
+    "firebase_url": "https://workchat2-25ccf.firebaseio.com",
+    "project_id": "workchat2-25ccf",
+    "storage_bucket": "workchat2-25ccf.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:661614499405:android:5569536d8b5f4539",
+        "android_client_info": {
+          "package_name": "com.rainmaker.workchat"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "661614499405-2ekeaui0hcehuk9ti784fivco3pqio4f.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.rainmaker.workchat",
+            "certificate_hash": "3e02e70d24082de87103fe892a7be21a0afd3c8e"
+          }
+        },
+        {
+          "client_id": "661614499405-ed74iolp93h9ur3dja7ubq6imo4rs2q8.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDYefVl3UFgZ1AzLwPGiyLbbIwovuqv1Vg"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "661614499405-ed74iolp93h9ur3dja7ubq6imo4rs2q8.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
