@@ -17,4 +17,13 @@
     <string name="create_chat">Создать чат</string>
     <string name="no_messages">Нет сообщений</string>
     <string name="no_chats">Нет доступных диалогов</string>
+    <string name="notification_message">You have a new message in %s</string>
+    <string name="message_count">%s messages</string>
+    <string name="last_message_from">The last message from: %s</string>
+    <string name="menu_title">Work chat</string>
+    <string name="public_chats">Public chats</string>
+    <string name="private_chats">Private chats</string>
+    <string name="about">About</string>
+    <string name="create_chats">Create chat</string>
+    <string name="settings">Settings</string>
 </resources>

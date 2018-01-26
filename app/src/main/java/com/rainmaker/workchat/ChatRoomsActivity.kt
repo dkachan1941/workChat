@@ -7,7 +7,7 @@ import android.support.v7.widget.Toolbar
 import android.support.v7.widget.RecyclerView
 import android.support.v7.widget.LinearLayoutManager
 import android.view.*
-import android.widget.ImageView
+import android.widget.Button
 import android.widget.ProgressBar
 import android.widget.TextView
 import com.firebase.ui.database.FirebaseRecyclerAdapter
@@ -17,9 +17,13 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.database.*
 import com.google.firebase.messaging.FirebaseMessaging
-import de.hdodenhof.circleimageview.CircleImageView
 import kotlinx.android.synthetic.main.activity_chat_rooms.*
-
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.ValueEventListener
+import com.google.firebase.database.DatabaseReference
+import org.jetbrains.anko.doAsync
+import org.jetbrains.anko.uiThread
 
 class ChatRoomsActivity : AppCompatActivity() {
 
@@ -28,6 +32,7 @@ class ChatRoomsActivity : AppCompatActivity() {
     private lateinit var mMessageRecyclerView: RecyclerView
     private lateinit var mLinearLayoutManager: LinearLayoutManager
     private lateinit var mFirebaseAuth: FirebaseAuth
+    private lateinit var mProgressBar: ProgressBar
     private var mFirebaseUser: FirebaseUser? = null
     private var mUsername: String? = null
     private var mPhotoUrl: String? = null
@@ -35,6 +40,8 @@ class ChatRoomsActivity : AppCompatActivity() {
     class ChatViewHolder(v: View) : RecyclerView.ViewHolder(v) {
         internal var chatNameTextView: TextView = itemView.findViewById(R.id.chatName)
         internal var chatStatusTextView: TextView = itemView.findViewById(R.id.chatStatus)
+        internal var messageCount: Button = itemView.findViewById(R.id.messageCount)
+        internal var lastMessageFrom: TextView = itemView.findViewById(R.id.lastMessageFrom)
         private var mClickListener: ChatViewHolder.ClickListener? = null
 
         interface ClickListener {
@@ -60,7 +67,7 @@ class ChatRoomsActivity : AppCompatActivity() {
         val mToolbar = findViewById<Toolbar>(R.id.toolbar_main)
         mToolbar.title = ""
         setSupportActionBar(mToolbar)
-        val mProgressBar = findViewById<ProgressBar>(R.id.progressBar)
+        mProgressBar = findViewById(R.id.progressBar)
 
         FirebaseMessaging.getInstance().subscribeToTopic("notifications")
 
@@ -78,7 +85,7 @@ class ChatRoomsActivity : AppCompatActivity() {
             chat
         }
 
-        val chatsRef = mFirebaseDatabaseReference.child(ChatActivity.ROOMS_CHILD)
+        val chatsRef = mFirebaseDatabaseReference.child(ChatActivity.ROOMS_CHILD).orderByKey().equalTo("-L0JymeoCWS3uaiBiv9K").ref
 
         chatsRef.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
@@ -126,7 +133,36 @@ class ChatRoomsActivity : AppCompatActivity() {
                 mProgressBar.visibility = ProgressBar.GONE
 
                 viewHolder.chatNameTextView.text = chatItem.name
-                viewHolder.chatStatusTextView.text = chatItem.status.toString()
+//                viewHolder.chatStatusTextView.text = chatItem.messageCount.toString()
+                chatsRef.addListenerForSingleValueEvent(object : ValueEventListener {
+                    override fun onDataChange(dataSnapshot: DataSnapshot) {
+                        val items = dataSnapshot.child(chatItem.id).child("messages").value
+                        if (items is HashMap<*, *>){
+                            viewHolder.chatStatusTextView.text = String.format(resources.getString(R.string.message_count), items.size)
+                        } else {
+                            viewHolder.chatStatusTextView.text = String.format(resources.getString(R.string.message_count), 0)
+                        }
+                    }
+
+                    override fun onCancelled(databaseError: DatabaseError) {
+
+                    }
+                })
+
+                val lastQuery = chatsRef.child(chatItem.id).child("messages").orderByKey().limitToLast(1)
+                lastQuery.addListenerForSingleValueEvent(object : ValueEventListener {
+                    override fun onDataChange(dataSnapshot: DataSnapshot) {
+                        dataSnapshot.children.map {
+                            viewHolder.lastMessageFrom.text = String.format(resources.getString(R.string.last_message_from, it.getValue<MessageModel>(MessageModel::class.java)?.name))
+                        }
+                    }
+
+                    override fun onCancelled(databaseError: DatabaseError) {
+                        //Handle possible errors.
+                    }
+                })
+
+                viewHolder.messageCount.visibility = View.INVISIBLE
             }
         }
 
@@ -174,6 +210,7 @@ class ChatRoomsActivity : AppCompatActivity() {
     public override fun onResume() {
         super.onResume()
         mFirebaseAdapter.startListening()
+        mProgressBar.visibility = View.VISIBLE
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {

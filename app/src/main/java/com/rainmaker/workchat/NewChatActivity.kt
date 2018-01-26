@@ -4,9 +4,12 @@ import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.support.design.widget.TextInputLayout
 import android.widget.Button
+import com.google.firebase.auth.FirebaseAuth
 import com.rainmaker.workchat.ChatActivity.*
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
+import java.util.*
+import kotlin.collections.ArrayList
 
 
 class NewChatActivity : AppCompatActivity() {
@@ -28,7 +31,8 @@ class NewChatActivity : AppCompatActivity() {
     }
 
     private fun createChat(text: String) {
-        val newRoom = ChatModel(text, 0)
+        val firebaseUser = FirebaseAuth.getInstance().currentUser?.uid
+        val newRoom = ChatModel(text, 0, Date().toString(), firebaseUser!!, arrayListOf(firebaseUser))
         mFirebaseDatabaseReference.child(ROOMS_CHILD).push().setValue(newRoom)
         finish()
     }
