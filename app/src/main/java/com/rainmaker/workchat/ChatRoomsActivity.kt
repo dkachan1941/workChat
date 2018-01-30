@@ -22,8 +22,6 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.DatabaseReference
-import org.jetbrains.anko.doAsync
-import org.jetbrains.anko.uiThread
 
 class ChatRoomsActivity : AppCompatActivity() {
 

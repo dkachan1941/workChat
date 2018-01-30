@@ -179,7 +179,7 @@ class ChatRoomsController : Controller() {
         mFirebaseAdapter.registerAdapterDataObserver(object : RecyclerView.AdapterDataObserver() {
             override fun onItemRangeInserted(positionStart: Int, itemCount: Int) {
                 super.onItemRangeInserted(positionStart, itemCount)
-                val friendlyMessageCount = mFirebaseAdapter.getItemCount()
+                val friendlyMessageCount = mFirebaseAdapter.itemCount
                 val lastVisiblePosition = mLinearLayoutManager.findLastCompletelyVisibleItemPosition()
                 // If the recycler view is initially being loaded or the user is at the bottom of the list, scroll
                 // to the bottom of the list to show the newly added message.
@@ -189,8 +189,8 @@ class ChatRoomsController : Controller() {
             }
         })
 
-        mMessageRecyclerView.setLayoutManager(mLinearLayoutManager)
-        mMessageRecyclerView.setAdapter(mFirebaseAdapter)
+        mMessageRecyclerView.layoutManager = mLinearLayoutManager
+        mMessageRecyclerView.adapter = mFirebaseAdapter
 
         mFirebaseAdapter.startListening()
 
