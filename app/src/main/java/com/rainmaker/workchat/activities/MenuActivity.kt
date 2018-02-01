@@ -2,53 +2,50 @@ package com.rainmaker.workchat.activities
 
 import android.app.Activity
 import android.content.Intent
+import android.graphics.Bitmap
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import android.support.v4.graphics.drawable.RoundedBitmapDrawableFactory
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
+import android.widget.TextView
 import android.widget.Toast
-import co.zsmb.materialdrawerkt.builders.accountHeader
 import co.zsmb.materialdrawerkt.builders.drawer
-import co.zsmb.materialdrawerkt.builders.footer
-import co.zsmb.materialdrawerkt.draweritems.badgeable.PrimaryDrawerItemKt
 import co.zsmb.materialdrawerkt.draweritems.badgeable.primaryItem
 import co.zsmb.materialdrawerkt.draweritems.divider
-import co.zsmb.materialdrawerkt.draweritems.profile.profile
 import com.bluelinelabs.conductor.Conductor
 import com.bluelinelabs.conductor.Controller
 import com.bluelinelabs.conductor.Router
 import com.bluelinelabs.conductor.RouterTransaction
+import com.bumptech.glide.Glide
+import com.bumptech.glide.request.target.BitmapImageViewTarget
 import com.google.android.gms.auth.api.Auth
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.api.GoogleApiClient
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.FirebaseUser
 import com.mikepenz.materialdrawer.Drawer
 import com.mikepenz.materialdrawer.model.PrimaryDrawerItem
 import com.mikepenz.materialdrawer.model.interfaces.IDrawerItem
-import com.mikepenz.materialdrawer.util.DrawerItemViewHelper
 import com.rainmaker.workchat.*
 import com.rainmaker.workchat.ChatActivity.ANONYMOUS
-import com.rainmaker.workchat.controllers.ChatRoomsController
-import com.rainmaker.workchat.controllers.HomeController
-import com.rainmaker.workchat.controllers.SignInController
+import com.rainmaker.workchat.controllers.*
 import kotlinx.android.synthetic.main.activity_menu.*
 import javax.inject.Inject
 import kotlin.reflect.KClass
 
-class MenuActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedListener{
-
+class MenuActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedListener, MenuActivityInterface{
 
     @Inject
     lateinit var mGoogleApiClient: GoogleApiClient
 
-    private lateinit var drawerResult: Drawer
+    lateinit var drawerResult: Drawer
     private lateinit var router: Router
     private lateinit var mFirebaseAuth: FirebaseAuth
-    private var mFirebaseUser: FirebaseUser? = null
     private var mUsername: String? = null
     private var mPhotoUrl: String? = null
+    private lateinit var profileImageView: ImageView
+    private lateinit var profileNameTextView: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -69,18 +66,14 @@ class MenuActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedList
     private fun checkAuth() {
         // Initialize Firebase Auth
         mFirebaseAuth = FirebaseAuth.getInstance()
-        mFirebaseUser = mFirebaseAuth.currentUser
 
-        if (mFirebaseUser == null) {
+        if (mFirebaseAuth.currentUser == null) {
             router.pushController(RouterTransaction.with(SignInController()))
-            // Not signed in, launch the Sign In activity
-//            startActivity(Intent(this, SignInActivity::class.java))
-//            finish()
             return
         } else { // TODO think about !! below
-            mUsername = mFirebaseUser!!.displayName
-            if (mFirebaseUser!!.photoUrl != null) {
-                mPhotoUrl = mFirebaseUser!!.photoUrl!!.toString()
+            mUsername = mFirebaseAuth.currentUser!!.displayName
+            if (mFirebaseAuth.currentUser!!.photoUrl != null) {
+                mPhotoUrl = mFirebaseAuth.currentUser!!.photoUrl!!.toString()
             }
         }
     }
@@ -89,28 +82,27 @@ class MenuActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedList
         toolbarMenu.setTitle(R.string.menu_title)
 
         drawerResult = drawer {
+            val displayMetrics = applicationContext.resources.displayMetrics
             toolbar = toolbarMenu
             showOnFirstLaunch = true
             hasStableIds = true
-            val displayMetrics = applicationContext.resources.displayMetrics
             widthDp = (displayMetrics.widthPixels / displayMetrics.density / 1.5).toInt()
             showOnFirstLaunch = true
             innerShadow = true
+            headerViewRes = R.layout.menu_header
 
-            accountHeader {
-                compactStyle = true
-                profile{
-                    name = "Name"
-                    email = "Email"
-                    nameShown = true
-                    this.onClick({ _, _, _ -> false })
-                }
+            primaryItem(getString(R.string.home)){
+                identifier = 100
+                icon = R.drawable.abc_ic_star_black_48dp
+                onClick(pushController(HomeController()))
             }
+
             primaryItem(getString(R.string.public_chats)){
                 identifier = 101
                 icon = R.drawable.abc_ic_star_black_48dp
                 onClick(pushController(ChatRoomsController()))
             }
+
             primaryItem(getString(R.string.private_chats)){
                 identifier = 102
                 icon = R.drawable.abc_ic_star_black_48dp
@@ -127,7 +119,7 @@ class MenuActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedList
             primaryItem(getString(R.string.settings)){
                 identifier = 104
                 icon = R.drawable.abc_ic_star_black_48dp
-//                onClick(doSmth())
+                onClick(pushController(SettingsController()))
             }
 
             divider()
@@ -135,18 +127,58 @@ class MenuActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedList
             primaryItem(getString(R.string.about)){
                 identifier = 105
                 icon = R.drawable.abc_ic_star_black_48dp
-//                onClick(doSmth())
+                onClick(pushController(AboutController()))
             }
 
             divider()
 
         }
 
-        if (mFirebaseAuth != null){
-            drawerResult.addStickyFooterItem(createSignOutDrawerItem())
+        with(drawerResult){
+            if (mFirebaseAuth.currentUser == null){
+                getDrawerItem(101).withEnabled(false)
+                getDrawerItem(102).withEnabled(false)
+                getDrawerItem(103).withEnabled(false)
+                addStickyFooterItem(createSignInDrawerItem())
+            } else {
+                getDrawerItem(101).withEnabled(true)
+                getDrawerItem(102).withEnabled(true)
+                getDrawerItem(103).withEnabled(true)
+                addStickyFooterItem(createSignOutDrawerItem())
+            }
         }
 
         drawerResult.openDrawer()
+
+        profileImageView = drawerResult.header.findViewById(R.id.imageViewProfile)
+        profileNameTextView = drawerResult.header.findViewById(R.id.profile_name)
+
+        updateProfileInfo(profileImageView, profileNameTextView)
+
+    }
+
+    private fun updateProfileInfo(profileImageView: ImageView, profileNameTextView: TextView) {
+        Glide.with(baseContext)
+                .load(mFirebaseAuth.currentUser?.photoUrl)
+                .asBitmap() // to make image circular
+                .centerCrop()
+                .placeholder(R.drawable.avatar_anonymous)
+                .into(object : BitmapImageViewTarget(profileImageView) {
+                    override fun setResource(resource: Bitmap) {
+                        val drawable = RoundedBitmapDrawableFactory.create(resources,
+                                Bitmap.createScaledBitmap(resource, 100, 100, false))
+                        drawable.isCircular = true
+                        profileImageView.setImageDrawable(drawable)
+                    }
+                })
+
+        if (mFirebaseAuth.currentUser?.displayName == null){
+            profileNameTextView.text = ""
+            profileNameTextView.visibility = View.GONE
+        } else {
+            profileNameTextView.visibility = View.VISIBLE
+            profileNameTextView.text = mFirebaseAuth.currentUser?.displayName
+        }
     }
 
     private fun createSignOutDrawerItem(): IDrawerItem<*, *> {
@@ -156,10 +188,12 @@ class MenuActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedList
                     signOut()
                     with(drawerResult){
                         removeStickyFooterItemAtPosition(0)
+                        getDrawerItem(101).withEnabled(false)
                         getDrawerItem(102).withEnabled(false)
                         getDrawerItem(103).withEnabled(false)
                         addStickyFooterItem(createSignInDrawerItem())
                     }
+                    updateProfileInfo(profileImageView, profileNameTextView)
                     router.pushController(RouterTransaction.with(HomeController()))
                     false
                 })
@@ -170,10 +204,6 @@ class MenuActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedList
                 .withName(R.string.sign_in)
                 .withOnDrawerItemClickListener({ _, _, _ ->
                     with(drawerResult){
-                        removeStickyFooterItemAtPosition(0)
-                        getDrawerItem(102).withEnabled(true)
-                        getDrawerItem(103).withEnabled(true)
-                        addStickyFooterItem(createSignOutDrawerItem())
                         router.pushController(RouterTransaction.with(SignInController()))
                     }
                     false
@@ -183,7 +213,6 @@ class MenuActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedList
     private fun signOut() {
         mFirebaseAuth.signOut()
         Auth.GoogleSignInApi.signOut(mGoogleApiClient)
-        mFirebaseUser = null
         mUsername = ANONYMOUS
         mPhotoUrl = null
     }
@@ -206,11 +235,30 @@ class MenuActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedList
         if (drawerResult.isDrawerOpen)
             drawerResult.closeDrawer()
         else
-            super.onBackPressed()
+            if (!router.handleBack()) {
+                super.onBackPressed()
+            }
     }
 
     override fun onConnectionFailed(p0: ConnectionResult) {
         Toast.makeText(this, "Google Play Services error.", Toast.LENGTH_SHORT).show()
+    }
+
+    override fun onSignedIn(success: Boolean) {
+        if (success){
+            router.pushController(RouterTransaction.with(HomeController()))
+            with(drawerResult){
+                getDrawerItem(101).withEnabled(true)
+                getDrawerItem(102).withEnabled(true)
+                getDrawerItem(103).withEnabled(true)
+                removeStickyFooterItemAtPosition(0)
+                addStickyFooterItem(createSignOutDrawerItem())
+            }
+        } else {
+            // TODO implement fail
+            Toast.makeText(applicationContext, "Authentication failed.", Toast.LENGTH_SHORT).show()
+        }
+        updateProfileInfo(profileImageView, profileNameTextView)
     }
 
 }

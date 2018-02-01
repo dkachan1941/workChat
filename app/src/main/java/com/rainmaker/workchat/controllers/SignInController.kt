@@ -1,5 +1,6 @@
 package com.rainmaker.workchat.controllers
 
+import android.content.Context
 import android.content.Intent
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
@@ -21,6 +22,8 @@ import com.google.firebase.auth.GoogleAuthProvider
 import com.rainmaker.workchat.App
 
 import com.rainmaker.workchat.R
+import com.rainmaker.workchat.activities.MenuActivity
+import com.rainmaker.workchat.activities.MenuActivityInterface
 import javax.inject.Inject
 
 /**
@@ -35,9 +38,16 @@ class SignInController : Controller(), GoogleApiClient.OnConnectionFailedListene
     lateinit var app: App
 
     private val RC_SIGN_IN = 9001
+
     private lateinit var mFirebaseAuth: FirebaseAuth
+    private lateinit var listener: MenuActivityInterface
     private lateinit var mView: View
     private val TAG = "SignInController"
+
+    override fun onContextAvailable(context: Context) {
+        super.onContextAvailable(context)
+        listener = context as MenuActivityInterface
+    }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup): View {
         mView = inflater.inflate(R.layout.controller_sign_in, container, false)
@@ -45,6 +55,7 @@ class SignInController : Controller(), GoogleApiClient.OnConnectionFailedListene
         (mView.context.applicationContext as App).component.inject(this@SignInController)
         signInWithGoogle?.setOnClickListener({signIn()})
         mFirebaseAuth = FirebaseAuth.getInstance()
+        mFirebaseAuth.currentUser?.photoUrl
         return mView
     }
 
@@ -85,11 +96,9 @@ class SignInController : Controller(), GoogleApiClient.OnConnectionFailedListene
                     // the auth state listener will be notified and logic to handle the
                     // signed in user can be handled in the listener.
                     if (!task.isSuccessful) {
-                        Log.w(TAG, "signInWithCredential", task.exception)
-                        Toast.makeText(app, "Authentication failed.",
-                                Toast.LENGTH_SHORT).show()
+                        listener.onSignedIn(false)
                     } else {
-                        router.pushController(RouterTransaction.with(HomeController()))
+                        listener.onSignedIn(true)
                     }
                 })
     }

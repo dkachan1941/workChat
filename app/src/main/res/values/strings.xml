@@ -27,4 +27,5 @@
     <string name="create_chats">Create chat</string>
     <string name="settings">Settings</string>
     <string name="sign_in_with_google">Sign In with Google</string>
+    <string name="home">Home</string>
 </resources>
