@@ -104,16 +104,16 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                 notificationUtils.playNotificationSound();
             } else {
                 // app is in background, show the notification in notification tray
-                Intent resultIntent = new Intent(getApplicationContext(), ChatRoomsActivity.class);
-                resultIntent.putExtra("message", String.format(getResources().getString(R.string.notification_message), message));
-
-                // check for image attachment
-                if (TextUtils.isEmpty(imageUrl)) {
-                    showNotificationMessage(getApplicationContext(), title, String.format(getResources().getString(R.string.notification_message), message), timestamp, resultIntent);
-                } else {
-                    // image is present, show notification with image
-                    showNotificationMessageWithBigImage(getApplicationContext(), title, String.format(getResources().getString(R.string.notification_message), message), timestamp, resultIntent, imageUrl);
-                }
+//                Intent resultIntent = new Intent(getApplicationContext(), ChatRoomsActivity.class);
+//                resultIntent.putExtra("message", String.format(getResources().getString(R.string.notification_message), message));
+//
+//                // check for image attachment
+//                if (TextUtils.isEmpty(imageUrl)) {
+//                    showNotificationMessage(getApplicationContext(), title, String.format(getResources().getString(R.string.notification_message), message), timestamp, resultIntent);
+//                } else {
+//                    // image is present, show notification with image
+//                    showNotificationMessageWithBigImage(getApplicationContext(), title, String.format(getResources().getString(R.string.notification_message), message), timestamp, resultIntent, imageUrl);
+//                }
             }
         } catch (JSONException e) {
             Log.e(TAG, "Json Exception: " + e.getMessage());

@@ -26,6 +26,7 @@ import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.DatabaseReference
 import com.rainmaker.workchat.*
 import com.rainmaker.workchat.R
+import com.rainmaker.workchat.R.id.textViewNoChats
 import org.jetbrains.anko.doAsync
 import org.jetbrains.anko.uiThread
 
@@ -44,6 +45,8 @@ class ChatRoomsController : Controller() {
     private var mFirebaseUser: FirebaseUser? = null
     private var mUsername: String? = null
     private var mPhotoUrl: String? = null
+    private val ROOMS_CHILD = "rooms"
+    private var chatsAdapter = ChatsAdapter(ArrayList())
 
     class ChatViewHolder(v: View) : RecyclerView.ViewHolder(v) {
         internal var chatNameTextView: TextView = itemView.findViewById(R.id.chatName)
@@ -62,8 +65,6 @@ class ChatRoomsController : Controller() {
         }
 
         init {
-//            chatNameTextView = itemView.findViewById(R.id.chatName)
-//            chatStatusTextView = itemView.findViewById(R.id.chatStatus)
             itemView.setOnClickListener { v -> mClickListener!!.onItemClick(v, adapterPosition) }
         }
 
@@ -71,18 +72,14 @@ class ChatRoomsController : Controller() {
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup): View {
         val view = inflater.inflate(R.layout.activity_chat_rooms, container, false)
-//        val mToolbar = view.findViewById<Toolbar>(R.id.toolbar_main)
-//        mToolbar.title = ""
-//        setSupportActionBar(mToolbar)
         mProgressBar = view.findViewById(R.id.progressBar)
-
         FirebaseMessaging.getInstance().subscribeToTopic("notifications")
 
         checkAuth()
 
         mProgressBar.visibility = View.VISIBLE
-
         mMessageRecyclerView = view.findViewById(R.id.roomsRrecyclerView)
+        mMessageRecyclerView.adapter = chatsAdapter
         mLinearLayoutManager = LinearLayoutManager(view.context)
         mFirebaseDatabaseReference = FirebaseDatabase.getInstance().reference
 
@@ -94,23 +91,26 @@ class ChatRoomsController : Controller() {
             chat
         }
 
-        val chatsRef = mFirebaseDatabaseReference.child(ChatActivity.ROOMS_CHILD).orderByKey().equalTo("-L0JymeoCWS3uaiBiv9K").ref
+        val chatsRef = mFirebaseDatabaseReference.child(ROOMS_CHILD).ref.orderByChild("name").equalTo("ttt").ref
 
-        chatsRef.addListenerForSingleValueEvent(object : ValueEventListener {
-            override fun onDataChange(dataSnapshot: DataSnapshot) {
-                //onDataChange called so remove progress bar
+        val chatsRefNew = mFirebaseDatabaseReference.child(ROOMS_CHILD).ref.orderByChild("users/${mFirebaseAuth.currentUser?.uid}").equalTo("true")
+        chatsRefNew.addValueEventListener(object : ValueEventListener{
+            override fun onDataChange(p0: DataSnapshot?) {
+                val chatsList = p0?.children?.map { it.getValue(ChatModel1::class.java) }
+                p0?.children?.mapIndexed { index, dataSnapshot ->
+                    chatsList?.get(index)?.key = dataSnapshot.key
+                }
                 val textViewNoChats = view.findViewById<TextView>(R.id.textViewNoChats)
-                if (!dataSnapshot.hasChildren()) {
-                    mProgressBar.visibility = View.GONE
-                    textViewNoChats.visibility = View.VISIBLE
-                } else {
+                mProgressBar.visibility = View.GONE
+                if (chatsList?.size != null && chatsList.isNotEmpty()){
+                    chatsAdapter.setData(ArrayList(chatsList))
                     textViewNoChats.visibility = View.GONE
+                } else {
+                    textViewNoChats.visibility = View.VISIBLE
                 }
             }
 
-            override fun onCancelled(databaseError: DatabaseError) {
-
-            }
+            override fun onCancelled(p0: DatabaseError?) {}
         })
 
         val options = FirebaseRecyclerOptions.Builder<ChatModel>()
@@ -120,18 +120,14 @@ class ChatRoomsController : Controller() {
         mFirebaseAdapter = object : FirebaseRecyclerAdapter<ChatModel, ChatViewHolder>(options) {
 
             override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ChatViewHolder {
-                val inflater = LayoutInflater.from(parent.context)
-                val viewHolder = ChatViewHolder(inflater.inflate(R.layout.item_chat, parent, false))
+                val viewHolder = ChatViewHolder(LayoutInflater.from(parent.context).inflate(R.layout.item_chat, parent, false))
                 viewHolder.setOnClickListener(object : ChatViewHolder.ClickListener {
                     override fun onItemClick(view: View, position: Int) {
                         val intent = Intent(viewHolder.chatNameTextView.context, ChatActivity::class.java)
                         intent.putExtra("chatId", mFirebaseAdapter.getRef(position).ref.key)
                         startActivity(intent)
                     }
-
-                    override fun onItemLongClick(view: View, position: Int) {
-
-                    }
+                    override fun onItemLongClick(view: View, position: Int) {}
                 })
                 return viewHolder
             }
@@ -143,7 +139,6 @@ class ChatRoomsController : Controller() {
                 mProgressBar.visibility = ProgressBar.GONE
 
                 viewHolder.chatNameTextView.text = chatItem.name
-//                viewHolder.chatStatusTextView.text = chatItem.messageCount.toString()
                 chatsRef.addListenerForSingleValueEvent(object : ValueEventListener {
                     override fun onDataChange(dataSnapshot: DataSnapshot) {
                         val items = dataSnapshot.child(chatItem.id).child("messages").value
@@ -153,10 +148,7 @@ class ChatRoomsController : Controller() {
                             viewHolder.chatStatusTextView.text = String.format(resources!!.getString(R.string.message_count), 0)
                         }
                     }
-
-                    override fun onCancelled(databaseError: DatabaseError) {
-
-                    }
+                    override fun onCancelled(databaseError: DatabaseError) {}
                 })
 
                 val lastQuery = chatsRef.child(chatItem.id).child("messages").orderByKey().limitToLast(1)
@@ -166,10 +158,7 @@ class ChatRoomsController : Controller() {
                             viewHolder.lastMessageFrom.text = String.format(resources!!.getString(R.string.last_message_from, it.getValue<MessageModel>(MessageModel::class.java)?.name))
                         }
                     }
-
-                    override fun onCancelled(databaseError: DatabaseError) {
-                        //Handle possible errors.
-                    }
+                    override fun onCancelled(databaseError: DatabaseError) {}
                 })
 
                 viewHolder.messageCount.visibility = View.INVISIBLE
@@ -190,7 +179,7 @@ class ChatRoomsController : Controller() {
         })
 
         mMessageRecyclerView.layoutManager = mLinearLayoutManager
-        mMessageRecyclerView.adapter = mFirebaseAdapter
+//        mMessageRecyclerView.adapter = mFirebaseAdapter
 
         mFirebaseAdapter.startListening()
 

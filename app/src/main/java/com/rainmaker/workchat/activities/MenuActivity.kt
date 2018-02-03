@@ -28,7 +28,7 @@ import com.mikepenz.materialdrawer.Drawer
 import com.mikepenz.materialdrawer.model.PrimaryDrawerItem
 import com.mikepenz.materialdrawer.model.interfaces.IDrawerItem
 import com.rainmaker.workchat.*
-import com.rainmaker.workchat.ChatActivity.ANONYMOUS
+//import com.rainmaker.workchat.ChatActivity.ANONYMOUS
 import com.rainmaker.workchat.controllers.*
 import kotlinx.android.synthetic.main.activity_menu.*
 import javax.inject.Inject
@@ -38,7 +38,7 @@ class MenuActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedList
 
     @Inject
     lateinit var mGoogleApiClient: GoogleApiClient
-
+    private val ANONYMOUS = "anonymous"
     lateinit var drawerResult: Drawer
     private lateinit var router: Router
     private lateinit var mFirebaseAuth: FirebaseAuth
@@ -114,7 +114,7 @@ class MenuActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedList
             primaryItem(getString(R.string.create_chats)){
                 identifier = 103
                 icon = R.drawable.abc_ic_star_black_48dp
-                onClick(openActivity(NewChatActivity::class))
+                onClick(pushController(CreateChatController()))
             }
             primaryItem(getString(R.string.settings)){
                 identifier = 104

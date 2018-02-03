@@ -13,8 +13,8 @@
     <string name="cause_crash">Cause Crash</string>
     <string name="banner_ad_unit_id" translatable="false">ca-app-pub-3940256099942544/6300978111</string>
     <string name="add_chat">Добавить чат</string>
-    <string name="chat_name">Название чата</string>
-    <string name="create_chat">Создать чат</string>
+    <string name="chat_name">Chat name</string>
+    <string name="create_chat">Create chat</string>
     <string name="no_messages">Нет сообщений</string>
     <string name="no_chats">Нет доступных диалогов</string>
     <string name="notification_message">You have a new message in %s</string>

@@ -37,6 +37,7 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
@@ -114,6 +115,7 @@ public class ChatActivity extends AppCompatActivity implements
     private static final String TAG = "ChatActivity";
     public static final String MESSAGES_CHILD = "messages";
     public static final String ROOMS_CHILD = "rooms";
+    public static final String USER_CHAT = "userChat";
     private static final int REQUEST_INVITE = 1;
     private static final int REQUEST_IMAGE = 2;
     public static final int DEFAULT_MSG_LENGTH_LIMIT = 10;
@@ -159,8 +161,9 @@ public class ChatActivity extends AppCompatActivity implements
 
         if (mFirebaseUser == null) {
             // Not signed in, launch the Sign In activity
-            startActivity(new Intent(this, SignInActivity.class));
-            finish();
+//            startActivity(new Intent(this, SignInActivity.class));
+//            finish();
+            Toast.makeText(this, "mFirebaseUser == null", Toast.LENGTH_SHORT).show();
             return;
         } else {
             mUsername = mFirebaseUser.getDisplayName();
