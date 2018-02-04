@@ -10,7 +10,6 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.Toast
 import com.bluelinelabs.conductor.Controller
-import com.bluelinelabs.conductor.RouterTransaction
 import com.google.android.gms.auth.api.Auth
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.common.ConnectionResult
@@ -19,10 +18,11 @@ import com.google.android.gms.tasks.OnCompleteListener
 import com.google.firebase.auth.AuthResult
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
+import com.google.firebase.database.FirebaseDatabase
 import com.rainmaker.workchat.App
 
 import com.rainmaker.workchat.R
-import com.rainmaker.workchat.activities.MenuActivity
+import com.rainmaker.workchat.User
 import com.rainmaker.workchat.activities.MenuActivityInterface
 import javax.inject.Inject
 
@@ -55,7 +55,6 @@ class SignInController : Controller(), GoogleApiClient.OnConnectionFailedListene
         (mView.context.applicationContext as App).component.inject(this@SignInController)
         signInWithGoogle?.setOnClickListener({signIn()})
         mFirebaseAuth = FirebaseAuth.getInstance()
-        mFirebaseAuth.currentUser?.photoUrl
         return mView
     }
 
@@ -98,9 +97,20 @@ class SignInController : Controller(), GoogleApiClient.OnConnectionFailedListene
                     if (!task.isSuccessful) {
                         listener.onSignedIn(false)
                     } else {
+                        pushUserToDb(mFirebaseAuth.currentUser?.uid, mFirebaseAuth.currentUser?.email, mFirebaseAuth.currentUser?.displayName, mFirebaseAuth.currentUser?.providerId)
                         listener.onSignedIn(true)
                     }
                 })
+    }
+
+    private fun pushUserToDb(uuid: String?, email: String?, displayName: String?, providerId: String?) {
+        val user = User()
+        user.email = email
+        user.name = displayName
+        user.uuid = uuid
+        user.provider = providerId
+        val mFirebaseDatabaseReference = FirebaseDatabase.getInstance().reference.child("users")
+        mFirebaseDatabaseReference.child(uuid).setValue(user)
     }
 
 }

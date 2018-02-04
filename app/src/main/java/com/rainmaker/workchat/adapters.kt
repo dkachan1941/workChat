@@ -7,6 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import com.rainmaker.workchat.activities.ChatActivity
 
 /**
  * Created by dmitry on 2/3/18.
@@ -19,8 +20,7 @@ class ChatsAdapter(var chatList: ArrayList<ChatModel1?>) : RecyclerView.Adapter<
     }
 
     override fun onCreateViewHolder(parent: ViewGroup?, viewType: Int): ChatsViewHolder {
-        val viewHolder = ChatsViewHolder(LayoutInflater.from(parent?.context).inflate(R.layout.item_chat, parent, false))
-        return viewHolder
+        return ChatsViewHolder(LayoutInflater.from(parent?.context).inflate(R.layout.item_chat, parent, false))
     }
 
     override fun getItemCount(): Int {
@@ -29,22 +29,41 @@ class ChatsAdapter(var chatList: ArrayList<ChatModel1?>) : RecyclerView.Adapter<
 
     override fun onBindViewHolder(holder: ChatsViewHolder?, position: Int): Unit = holder?.bind(chatList[position]!!)!!
 
-//    override fun onBindViewHolder(holder: ChatsViewHolder?, position: Int) {
-//        holder?.txtName?.text = userList[position].name
-//        holder?.txtTitle?.text = userList[position].title
-//    }
-
     class ChatsViewHolder(itemView: View?) : RecyclerView.ViewHolder(itemView) {
-        val chatName = itemView?.findViewById<TextView>(R.id.chatName)
-        val lastMessageFrom = itemView?.findViewById<TextView>(R.id.lastMessageFrom)
-//        fun bind(item: ChatModel, listener: (ChatModel) -> Unit) = with(itemView) {
+        private val chatName = itemView?.findViewById<TextView>(R.id.chatName)
+        private val lastMessageFrom = itemView?.findViewById<TextView>(R.id.lastMessageFrom)
         fun bind(item: ChatModel1) = with(itemView) {
             chatName?.text = item.name
             lastMessageFrom?.text = item.messageCount.toString()
             setOnClickListener {
                 val intent = Intent(itemView.context, ChatActivity::class.java)
                 intent.putExtra("chatId", item.key)
+                intent.putExtra("chatName", item.name)
                 startActivity(itemView.context, intent, null)
+            }
+        }
+    }
+}
+
+class UsersAdapter(var chatList: ArrayList<User?>, val listener: (User) -> Unit) : RecyclerView.Adapter<UsersAdapter.UsersViewHolder>() {
+    override fun onCreateViewHolder(parent: ViewGroup?, viewType: Int): UsersViewHolder {
+        return UsersViewHolder(LayoutInflater.from(parent?.context).inflate(R.layout.item_user, parent, false))
+    }
+
+    override fun getItemCount(): Int {
+        return chatList.size
+    }
+
+    override fun onBindViewHolder(holder: UsersViewHolder?, position: Int) = holder?.bind(chatList[position]!!, listener)!!
+
+    class UsersViewHolder(itemView: View?) : RecyclerView.ViewHolder(itemView) {
+        private val userName = itemView?.findViewById<TextView>(R.id.userName)
+        private val userEmail = itemView?.findViewById<TextView>(R.id.userEmail)
+        fun bind(item: User, listener: (User) -> Unit) = with(itemView) {
+            userName?.text = item.name
+            userEmail?.text = item.email
+            setOnClickListener {
+                listener(item)
             }
         }
     }

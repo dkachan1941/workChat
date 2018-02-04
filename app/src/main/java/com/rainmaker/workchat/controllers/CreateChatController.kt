@@ -1,22 +1,19 @@
 package com.rainmaker.workchat.controllers
 
-import android.os.Bundle
 import android.support.design.widget.TextInputLayout
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
-import android.widget.EditText
 import com.bluelinelabs.conductor.Controller
 import com.bluelinelabs.conductor.RouterTransaction
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
-import com.rainmaker.workchat.ChatActivity
+import com.rainmaker.workchat.activities.ChatActivity
 import com.rainmaker.workchat.ChatModel
 
 import com.rainmaker.workchat.R
-import com.rainmaker.workchat.RoomUser
 import java.util.*
 import kotlin.collections.HashMap
 

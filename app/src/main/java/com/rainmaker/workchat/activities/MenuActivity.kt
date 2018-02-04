@@ -28,7 +28,7 @@ import com.mikepenz.materialdrawer.Drawer
 import com.mikepenz.materialdrawer.model.PrimaryDrawerItem
 import com.mikepenz.materialdrawer.model.interfaces.IDrawerItem
 import com.rainmaker.workchat.*
-//import com.rainmaker.workchat.ChatActivity.ANONYMOUS
+//import com.rainmaker.workchat.activities.ChatActivity.ANONYMOUS
 import com.rainmaker.workchat.controllers.*
 import kotlinx.android.synthetic.main.activity_menu.*
 import javax.inject.Inject
@@ -215,10 +215,6 @@ class MenuActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedList
         Auth.GoogleSignInApi.signOut(mGoogleApiClient)
         mUsername = ANONYMOUS
         mPhotoUrl = null
-    }
-
-    private fun doSmth(): (View?) -> Boolean = {
-        false
     }
 
     private fun <T : Activity> openActivity(activity: KClass<T>): (View?) -> Boolean = {

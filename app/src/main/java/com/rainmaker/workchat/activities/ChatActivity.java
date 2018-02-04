@@ -1,19 +1,5 @@
-/**
- * Copyright Google Inc. All Rights Reserved.
- * <p/>
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * <p/>
- * http://www.apache.org/licenses/LICENSE-2.0
- * <p/>
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-package com.rainmaker.workchat;
+
+package com.rainmaker.workchat.activities;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -25,11 +11,15 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.InputFilter;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -52,12 +42,6 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.analytics.FirebaseAnalytics;
-import com.google.firebase.appindexing.Action;
-import com.google.firebase.appindexing.FirebaseAppIndex;
-import com.google.firebase.appindexing.FirebaseUserActions;
-import com.google.firebase.appindexing.Indexable;
-import com.google.firebase.appindexing.builders.Indexables;
-import com.google.firebase.appindexing.builders.PersonBuilder;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -70,11 +54,20 @@ import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
+import com.rainmaker.workchat.ChatModel;
+import com.rainmaker.workchat.ChatModel1;
+import com.rainmaker.workchat.CodelabPreferences;
+import com.rainmaker.workchat.MessageModel;
+import com.rainmaker.workchat.R;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 import de.hdodenhof.circleimageview.CircleImageView;
+
+import static com.rainmaker.workchat.ConstantsKt.CODE_SELECT_USER;
+import static com.rainmaker.workchat.ConstantsKt.USER_UID;
 
 public class ChatActivity extends AppCompatActivity implements
         GoogleApiClient.OnConnectionFailedListener {
@@ -140,6 +133,7 @@ public class ChatActivity extends AppCompatActivity implements
     private EditText mMessageEditText;
     private ImageView mAddMessageImageView;
     private FirebaseRemoteConfig mFirebaseRemoteConfig;
+    private Toolbar mToolbar;
     private GoogleApiClient mGoogleApiClient;
     private String chatName = null;
     private String chatId = null;
@@ -177,11 +171,19 @@ public class ChatActivity extends AppCompatActivity implements
                 .addApi(Auth.GOOGLE_SIGN_IN_API)
                 .build();
 
-        mProgressBar = (ProgressBar) findViewById(R.id.progressBar);
+        mProgressBar = findViewById(R.id.progressBar);
+        mToolbar = findViewById(R.id.chatToolbar);
         mProgressBar.setVisibility(View.VISIBLE);
         mMessageRecyclerView = (RecyclerView) findViewById(R.id.messageRecyclerView);
         mLinearLayoutManager = new LinearLayoutManager(this);
         mLinearLayoutManager.setStackFromEnd(true);
+
+        setSupportActionBar(mToolbar);
+        if (getSupportActionBar() != null){
+            getSupportActionBar().setTitle(chatName);
+            getSupportActionBar().setHomeButtonEnabled(true);
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        }
 
         mFirebaseDatabaseReference = FirebaseDatabase.getInstance().getReference();
 
@@ -397,6 +399,27 @@ public class ChatActivity extends AppCompatActivity implements
         super.onDestroy();
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.main_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                onBackPressed();
+                return true;
+            case R.id.add_member_menu:
+                startActivityForResult(new Intent(ChatActivity.this, SelectUserActivity.class), CODE_SELECT_USER);
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
     private void sendInvitation() {
         Intent intent = new AppInviteInvitation.IntentBuilder(getString(R.string.invitation_title))
                 .setMessage(getString(R.string.invitation_message))
@@ -484,6 +507,34 @@ public class ChatActivity extends AppCompatActivity implements
 
                 // Sending failed or it was canceled, show failure message to the user
                 Log.d(TAG, "Failed to send invitation.");
+            }
+        } else if (requestCode == CODE_SELECT_USER) {
+            if (resultCode == RESULT_OK){
+                final String userUid = data.getStringExtra(USER_UID); // todo
+                // get existed users
+                DatabaseReference ref = mFirebaseDatabaseReference.child(ROOMS_CHILD).child(chatId).child("users").getRef();
+                ref.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        Map<String, String> users = (Map<String, String>) dataSnapshot.getValue();
+                        if (users != null) {
+                            if(!users.containsKey(userUid)){
+                                users.put(userUid, "true");
+                                mFirebaseDatabaseReference.child(ChatActivity.ROOMS_CHILD).child(chatId).child("users").setValue(users);
+                                MessageModel friendlyMessage = new MessageModel("Added a new member", mUsername,
+                                        mPhotoUrl, null);
+                                mFirebaseDatabaseReference.child(ROOMS_CHILD).child(chatId).child(MESSAGES_CHILD).push().setValue(friendlyMessage);
+                            } else {
+                                Toast.makeText(ChatActivity.this, "user already added", Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {}
+                });
+            } else {
+                // todo
             }
         }
     }

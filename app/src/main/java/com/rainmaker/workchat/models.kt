@@ -61,6 +61,21 @@ class RoomUser{
     }
 }
 
+class User{
+    var id: String? = null
+    var value: String? = null
+    var name: String? = null
+    var provider: String? = null
+    var email: String? = null
+    var uuid: String? = null
+
+    constructor() {}
+
+    constructor(value: String?) {
+        this.value = value
+    }
+}
+
 class MessageModel {
 
     var id: String? = null
