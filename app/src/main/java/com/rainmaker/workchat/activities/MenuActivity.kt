@@ -3,9 +3,11 @@ package com.rainmaker.workchat.activities
 import android.app.Activity
 import android.content.Intent
 import android.graphics.Bitmap
+import android.net.Uri
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.support.v4.graphics.drawable.RoundedBitmapDrawableFactory
+import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
@@ -18,8 +20,10 @@ import com.bluelinelabs.conductor.Conductor
 import com.bluelinelabs.conductor.Controller
 import com.bluelinelabs.conductor.Router
 import com.bluelinelabs.conductor.RouterTransaction
+import com.bluelinelabs.conductor.changehandler.HorizontalChangeHandler
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.BitmapImageViewTarget
+import com.google.android.gms.appinvite.AppInviteInvitation
 import com.google.android.gms.auth.api.Auth
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.api.GoogleApiClient
@@ -28,6 +32,7 @@ import com.mikepenz.materialdrawer.Drawer
 import com.mikepenz.materialdrawer.model.PrimaryDrawerItem
 import com.mikepenz.materialdrawer.model.interfaces.IDrawerItem
 import com.rainmaker.workchat.*
+import com.rainmaker.workchat.activities.ChatActivity.Companion.ROOMS_CHILD
 //import com.rainmaker.workchat.activities.ChatActivity.ANONYMOUS
 import com.rainmaker.workchat.controllers.*
 import kotlinx.android.synthetic.main.activity_menu.*
@@ -46,6 +51,8 @@ class MenuActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedList
     private var mPhotoUrl: String? = null
     private lateinit var profileImageView: ImageView
     private lateinit var profileNameTextView: TextView
+    private val REQUEST_INVITE = 1001
+    private val TAG = "MenuActivity"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -94,19 +101,19 @@ class MenuActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedList
             primaryItem(getString(R.string.home)){
                 identifier = 100
                 icon = R.drawable.abc_ic_star_black_48dp
-                onClick(pushController(HomeController()))
+                onClick(pushController(HomeController::class))
             }
 
             primaryItem(getString(R.string.public_chats)){
                 identifier = 101
                 icon = R.drawable.abc_ic_star_black_48dp
-                onClick(pushController(ChatRoomsController()))
+                onClick(pushController(PublicChatRoomsController::class))
             }
 
             primaryItem(getString(R.string.private_chats)){
                 identifier = 102
                 icon = R.drawable.abc_ic_star_black_48dp
-                onClick(openActivity(ChatListActivity::class))
+                onClick(pushController(ChatRoomsController::class))
             }
 
             divider()
@@ -114,12 +121,12 @@ class MenuActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedList
             primaryItem(getString(R.string.create_chats)){
                 identifier = 103
                 icon = R.drawable.abc_ic_star_black_48dp
-                onClick(pushController(CreateChatController()))
+                onClick(pushController(CreateChatController::class))
             }
             primaryItem(getString(R.string.settings)){
                 identifier = 104
                 icon = R.drawable.abc_ic_star_black_48dp
-                onClick(pushController(SettingsController()))
+                onClick(pushController(SettingsController::class))
             }
 
             divider()
@@ -127,7 +134,15 @@ class MenuActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedList
             primaryItem(getString(R.string.about)){
                 identifier = 105
                 icon = R.drawable.abc_ic_star_black_48dp
-                onClick(pushController(AboutController()))
+                onClick(pushController(AboutController::class))
+            }
+
+            divider()
+
+            primaryItem(getString(R.string.invite_friend)){
+                identifier = 106
+                icon = R.drawable.abc_ic_star_black_48dp
+                onClick(sendInvitation())
             }
 
             divider()
@@ -136,12 +151,12 @@ class MenuActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedList
 
         with(drawerResult){
             if (mFirebaseAuth.currentUser == null){
-                getDrawerItem(101).withEnabled(false)
+//                getDrawerItem(101).withEnabled(false)
                 getDrawerItem(102).withEnabled(false)
                 getDrawerItem(103).withEnabled(false)
                 addStickyFooterItem(createSignInDrawerItem())
             } else {
-                getDrawerItem(101).withEnabled(true)
+//                getDrawerItem(101).withEnabled(true)
                 getDrawerItem(102).withEnabled(true)
                 getDrawerItem(103).withEnabled(true)
                 addStickyFooterItem(createSignOutDrawerItem())
@@ -155,6 +170,22 @@ class MenuActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedList
 
         updateProfileInfo(profileImageView, profileNameTextView)
 
+    }
+
+    private fun sendInvitation(): (View?) -> Boolean = {
+//        val intent = AppInviteInvitation.IntentBuilder(getString(R.string.invitation_title))
+//                .setMessage(getString(R.string.invitation_message))
+//                .setCallToActionText(getString(R.string.invitation_cta))
+//                .build()
+//        startActivityForResult(intent, REQUEST_INVITE)
+        val intent = AppInviteInvitation.IntentBuilder(getString(R.string.invitation_title))
+            .setMessage(getString(R.string.invitation_message))
+//            .setDeepLink(Uri.parse(getString(R.string.invitation_deep_link)))
+//            .setCustomImage(Uri.parse(getString(R.string.invitation_custom_image)))
+            .setCallToActionText(getString(R.string.invitation_cta))
+            .build()
+    startActivityForResult(intent, REQUEST_INVITE)
+        false
     }
 
     private fun updateProfileInfo(profileImageView: ImageView, profileNameTextView: TextView) {
@@ -188,13 +219,13 @@ class MenuActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedList
                     signOut()
                     with(drawerResult){
                         removeStickyFooterItemAtPosition(0)
-                        getDrawerItem(101).withEnabled(false)
+//                        getDrawerItem(101).withEnabled(false)
                         getDrawerItem(102).withEnabled(false)
                         getDrawerItem(103).withEnabled(false)
                         addStickyFooterItem(createSignInDrawerItem())
                     }
                     updateProfileInfo(profileImageView, profileNameTextView)
-                    router.pushController(RouterTransaction.with(HomeController()))
+                    router.setRoot(RouterTransaction.with(HomeController()))
                     false
                 })
     }
@@ -204,7 +235,7 @@ class MenuActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedList
                 .withName(R.string.sign_in)
                 .withOnDrawerItemClickListener({ _, _, _ ->
                     with(drawerResult){
-                        router.pushController(RouterTransaction.with(SignInController()))
+                        router.setRoot(RouterTransaction.with(SignInController()))
                     }
                     false
                 })
@@ -222,8 +253,11 @@ class MenuActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedList
         false
     }
 
-    private fun pushController(controller: Controller): (View?) -> Boolean = {
-        router.pushController(RouterTransaction.with(controller))
+    private fun <T : Controller> pushController(controller: KClass<T>): (View?) -> Boolean = {
+        router.setRoot(RouterTransaction.with(controller.java.newInstance()).
+                pushChangeHandler(HorizontalChangeHandler()).
+                popChangeHandler(HorizontalChangeHandler())
+        )
         false
     }
 
@@ -242,9 +276,9 @@ class MenuActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedList
 
     override fun onSignedIn(success: Boolean) {
         if (success){
-            router.pushController(RouterTransaction.with(HomeController()))
+            router.setRoot(RouterTransaction.with(HomeController()))
             with(drawerResult){
-                getDrawerItem(101).withEnabled(true)
+//                getDrawerItem(101).withEnabled(true)
                 getDrawerItem(102).withEnabled(true)
                 getDrawerItem(103).withEnabled(true)
                 removeStickyFooterItemAtPosition(0)
@@ -255,6 +289,18 @@ class MenuActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedList
             Toast.makeText(applicationContext, "Authentication failed.", Toast.LENGTH_SHORT).show()
         }
         updateProfileInfo(profileImageView, profileNameTextView)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == REQUEST_INVITE) {
+            if (resultCode == Activity.RESULT_OK) {
+                val ids = AppInviteInvitation.getInvitationIds(resultCode, data!!)
+                Log.d(TAG, "Invitations sent: " + ids.size)
+            } else {
+                Log.d(TAG, "Failed to send invitation.")
+            }
+        }
     }
 
 }

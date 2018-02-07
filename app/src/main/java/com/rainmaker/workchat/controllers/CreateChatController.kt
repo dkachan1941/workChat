@@ -22,6 +22,10 @@ import kotlin.collections.HashMap
  */
 class CreateChatController : Controller() {
 
+    companion object {
+        const val TAG_ROUTER = "CreateChatController"
+    }
+
     lateinit var mFirebaseDatabaseReference: DatabaseReference
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup): View {

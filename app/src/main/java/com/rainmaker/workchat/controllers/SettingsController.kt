@@ -11,6 +11,9 @@ import com.rainmaker.workchat.R
  * Created by dmitry on 1/29/18.
  */
 class SettingsController : Controller() {
+    companion object {
+        const val TAG_ROUTER = "SettingsController"
+    }
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup): View {
         return inflater.inflate(R.layout.controller_settings, container, false)
     }

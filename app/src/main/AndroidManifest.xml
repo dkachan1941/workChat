@@ -55,7 +55,8 @@
             </intent-filter>
         </activity>
         <activity android:name=".ChatListActivity" />
-        <activity android:name=".activities.SelectUserActivity"></activity>
+        <activity android:name=".activities.SelectUserActivity" />
+        <activity android:name=".activities.ChatsMembersActivity"></activity>
     </application>
 
 </manifest>
