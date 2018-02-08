@@ -9,15 +9,9 @@ import com.rainmaker.workchat.R
 
 /**
  * Created by dmitry on 1/29/18.
+ * home controller
  */
 class HomeController: Controller() {
-    companion object {
-        val TAG_ROUTER = "HomeController"
-    }
-    override fun onDestroyView(view: View) {
-        super.onDestroyView(view)
-    }
-
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup): View {
         return inflater.inflate(R.layout.controller_home, container, false)
     }

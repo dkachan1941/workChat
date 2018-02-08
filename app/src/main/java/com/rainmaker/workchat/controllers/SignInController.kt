@@ -14,20 +14,16 @@ import com.google.android.gms.auth.api.Auth
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.api.GoogleApiClient
-import com.google.android.gms.tasks.OnCompleteListener
-import com.google.firebase.auth.AuthResult
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
-import com.google.firebase.database.FirebaseDatabase
-import com.rainmaker.workchat.App
+import com.rainmaker.workchat.*
 
-import com.rainmaker.workchat.R
-import com.rainmaker.workchat.User
 import com.rainmaker.workchat.activities.MenuActivityInterface
 import javax.inject.Inject
 
 /**
  * Created by dmitry on 1/29/18.
+ * sign in controller
  */
 class SignInController : Controller(), GoogleApiClient.OnConnectionFailedListener {
 
@@ -37,12 +33,9 @@ class SignInController : Controller(), GoogleApiClient.OnConnectionFailedListene
     @Inject
     lateinit var app: App
 
-    private val RC_SIGN_IN = 9001
-
-    private lateinit var mFirebaseAuth: FirebaseAuth
+    private lateinit var mFireBaseAuth: FirebaseAuth
     private lateinit var listener: MenuActivityInterface
     private lateinit var mView: View
-    private val TAG = "SignInController"
 
     override fun onContextAvailable(context: Context) {
         super.onContextAvailable(context)
@@ -51,10 +44,10 @@ class SignInController : Controller(), GoogleApiClient.OnConnectionFailedListene
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup): View {
         mView = inflater.inflate(R.layout.controller_sign_in, container, false)
-        val signInWithGoogle = mView.findViewById<Button>(R.id.sign_in_with_google)
         (mView.context.applicationContext as App).component.inject(this@SignInController)
+        val signInWithGoogle = mView.findViewById<Button>(R.id.sign_in_with_google)
         signInWithGoogle?.setOnClickListener({signIn()})
-        mFirebaseAuth = FirebaseAuth.getInstance()
+        mFireBaseAuth = FirebaseAuth.getInstance()
         return mView
     }
 
@@ -65,52 +58,27 @@ class SignInController : Controller(), GoogleApiClient.OnConnectionFailedListene
     }
 
     override fun onConnectionFailed(p0: ConnectionResult) {
-        Toast.makeText(app, "Google Play Services error.", Toast.LENGTH_SHORT).show()
+        Toast.makeText(app, app.getString(R.string.err_google_services), Toast.LENGTH_SHORT).show()
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        // Result returned from launching the Intent from GoogleSignInApi.getSignInIntent(...);
         if (requestCode == RC_SIGN_IN) {
             val result = Auth.GoogleSignInApi.getSignInResultFromIntent(data)
-            if (result.isSuccess) {
-                // Google Sign In was successful, authenticate with Firebase
-                val account = result.signInAccount
-                firebaseAuthWithGoogle(account!!)
+            if (result.isSuccess && result?.signInAccount != null) {
+                fireBaseAuthWithGoogle(result.signInAccount!!)
             } else {
-                // Google Sign In failed
-                Log.e(TAG, "Google Sign In failed.")
+                Log.e(TAG, app.getString(R.string.err_sign_in_google_services))
             }
         }
     }
 
-    private fun firebaseAuthWithGoogle(acct: GoogleSignInAccount) {
-        Log.d(TAG, "firebaseAuthWithGoogle:" + acct.id!!)
+    private fun fireBaseAuthWithGoogle(acct: GoogleSignInAccount) {
         val credential = GoogleAuthProvider.getCredential(acct.idToken, null)
-        mFirebaseAuth.signInWithCredential(credential)
-                .addOnCompleteListener(mView.context as AppCompatActivity, OnCompleteListener<AuthResult> { task ->
-                    Log.d(TAG, "signInWithCredential:onComplete:" + task.isSuccessful)
-
-                    // If sign in fails, display a message to the user. If sign in succeeds
-                    // the auth state listener will be notified and logic to handle the
-                    // signed in user can be handled in the listener.
-                    if (!task.isSuccessful) {
-                        listener.onSignedIn(false)
-                    } else {
-                        pushUserToDb(mFirebaseAuth.currentUser?.uid, mFirebaseAuth.currentUser?.email, mFirebaseAuth.currentUser?.displayName, mFirebaseAuth.currentUser?.providerId)
-                        listener.onSignedIn(true)
-                    }
+        mFireBaseAuth.signInWithCredential(credential)
+                .addOnCompleteListener(mView.context as AppCompatActivity, { task ->
+                    listener.onSignedIn(task.isSuccessful)
                 })
-    }
-
-    private fun pushUserToDb(uuid: String?, email: String?, displayName: String?, providerId: String?) {
-        val user = User()
-        user.email = email
-        user.name = displayName
-        user.uuid = uuid
-        user.provider = providerId
-        val mFirebaseDatabaseReference = FirebaseDatabase.getInstance().reference.child("users")
-        mFirebaseDatabaseReference.child(uuid).setValue(user)
     }
 
 }

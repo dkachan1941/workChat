@@ -11,12 +11,14 @@ import com.rainmaker.workchat.activities.ChatActivity
 
 /**
  * Created by dmitry on 2/3/18.
+ *
  */
 
 class ChatsAdapter(var chatList: ArrayList<ChatModel1?>) : RecyclerView.Adapter<ChatsAdapter.ChatsViewHolder>() {
 
     fun setData(chatList: ArrayList<ChatModel1?>){
         this.chatList = chatList
+        notifyDataSetChanged()
     }
 
     override fun onCreateViewHolder(parent: ViewGroup?, viewType: Int): ChatsViewHolder {
@@ -37,15 +39,15 @@ class ChatsAdapter(var chatList: ArrayList<ChatModel1?>) : RecyclerView.Adapter<
             lastMessageFrom?.text = item.messageCount.toString()
             setOnClickListener {
                 val intent = Intent(itemView.context, ChatActivity::class.java)
-                intent.putExtra("chatId", item.key)
-                intent.putExtra("chatName", item.name)
+                intent.putExtra(CHAT_ID, item.key)
+                intent.putExtra(CHAT_NAME, item.name)
                 startActivity(itemView.context, intent, null)
             }
         }
     }
 }
 
-class UsersAdapter(var chatList: ArrayList<User?>, val listener: (User) -> Unit) : RecyclerView.Adapter<UsersAdapter.UsersViewHolder>() {
+class UsersAdapter(var chatList: ArrayList<User?>, private val listener: (User) -> Unit) : RecyclerView.Adapter<UsersAdapter.UsersViewHolder>() {
     override fun onCreateViewHolder(parent: ViewGroup?, viewType: Int): UsersViewHolder {
         return UsersViewHolder(LayoutInflater.from(parent?.context).inflate(R.layout.item_user, parent, false))
     }

@@ -31,5 +31,17 @@
     <string name="add_member_label">Add chat member</string>
     <string name="choose_the_user">Select available user:</string>
     <string name="invite_friend">Invite a friend</string>
-    <string name="all_members_label">members</string>
+    <string name="all_members_label">Participants</string>
+    <string name="err_google_services">Google Play Services error.</string>
+    <string name="err_sign_in_google_services">Google Sign In failed.</string>
+    <string name="err_making_request">Error while making firebase request</string>
+    <string name="err_error_adding_user">Error adding a user</string>
+    <string name="err_error_creating_chat">Error creating chat</string>
+    <string name="err_auth_err">Authentication failed.</string>
+    <string name="msg_invitations_sent">Invitations sent:</string>
+    <string name="err_invitations_sending_failed">Failed to send invitation.</string>
+    <string name="err_writing_to_db">Unable to write message to database.</string>
+    <string name="msg_new_user_added">A new user added</string>
+    <string name="msg_user_exists">User already exists</string>
+    <string name="err_image_loading">Image upload task was not successful.</string>
 </resources>

@@ -71,8 +71,9 @@ class User{
 
     constructor() {}
 
-    constructor(value: String?) {
-        this.value = value
+    constructor(uuid: String?, name: String?) {
+        this.name = name
+        this.uuid = uuid
     }
 }
 

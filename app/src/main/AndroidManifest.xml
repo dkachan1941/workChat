@@ -56,7 +56,7 @@
         </activity>
         <activity android:name=".ChatListActivity" />
         <activity android:name=".activities.SelectUserActivity" />
-        <activity android:name=".activities.ChatsMembersActivity"></activity>
+        <activity android:name=".activities.ChatParticipantsActivity"></activity>
     </application>
 
 </manifest>

@@ -1,6 +1,6 @@
 package com.rainmaker.workchat.di
 
-import android.support.v4.app.FragmentActivity
+import android.content.res.Resources
 import com.google.android.gms.auth.api.Auth
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.GoogleApiClient
@@ -12,6 +12,7 @@ import javax.inject.Singleton
 
 /**
  * Created by dmitry on 1/30/18.
+ *
  */
 @Module
 class AppModule(val app: App) {
@@ -30,4 +31,11 @@ class AppModule(val app: App) {
                 .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
                 .build()
     }
+
+    @Provides
+    @Singleton
+    fun provideResources() : Resources {
+        return app.resources
+    }
+
 }

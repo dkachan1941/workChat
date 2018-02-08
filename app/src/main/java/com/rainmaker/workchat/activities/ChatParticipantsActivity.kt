@@ -1,19 +1,17 @@
 package com.rainmaker.workchat.activities
 
-import android.app.Activity
-import android.content.Intent
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import android.support.v7.widget.DividerItemDecoration
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
-import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.ValueEventListener
+import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
-import android.support.v7.widget.DividerItemDecoration
+import com.google.firebase.database.ValueEventListener
 import com.rainmaker.workchat.*
 
-class SelectUserActivity : AppCompatActivity() {
+class ChatParticipantsActivity : AppCompatActivity() {
 
     lateinit var usersRecyclerView: RecyclerView
     lateinit var mLinearLayoutManager: LinearLayoutManager
@@ -21,7 +19,7 @@ class SelectUserActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_select_user)
+        setContentView(R.layout.activity_chats_members)
         setUpViews()
         setUpFireBaseListener()
     }
@@ -29,7 +27,7 @@ class SelectUserActivity : AppCompatActivity() {
     private fun setUpFireBaseListener() {
         val eventListener = object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
-                val userList: List<User?> = dataSnapshot.children.map { it.getValue(User::class.java) }
+                val userList: List<User?> = dataSnapshot.children.map { User(it.key, it.value as String?) }
                 if (userList.isNotEmpty()){
                     usersAdapter.chatList = ArrayList(userList)
                     usersAdapter.notifyDataSetChanged()
@@ -37,17 +35,13 @@ class SelectUserActivity : AppCompatActivity() {
             }
             override fun onCancelled(databaseError: DatabaseError) {}
         }
-        FirebaseDatabase.getInstance().reference.child(CHILD_USERS)
+        FirebaseDatabase.getInstance().reference.child("$CHILD_ROOMS/${intent?.getStringExtra(CHAT_ID)}/$CHILD_USERS")
                 .addListenerForSingleValueEvent(eventListener)
     }
 
     private fun setUpViews() {
         usersAdapter = UsersAdapter(ArrayList()){
-            val intent = Intent()
-            intent.putExtra(USER_UID, it.uuid)
-            intent.putExtra(USER_NAME, it.name)
-            setResult(Activity.RESULT_OK, intent)
-            finish()
+            // todo handle user click
         }
         usersRecyclerView = findViewById(R.id.usersRecyclerView)
         mLinearLayoutManager = LinearLayoutManager(baseContext)
