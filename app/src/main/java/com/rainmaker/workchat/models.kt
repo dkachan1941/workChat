@@ -84,13 +84,15 @@ class MessageModel {
     var name: String? = null
     var photoUrl: String? = null
     var imageUrl: String? = null
+    var userUid: String? = null
 
     constructor() {}
 
-    constructor(text: String?, name: String?, photoUrl: String?, imageUrl: String?) {
+    constructor(text: String?, name: String?, photoUrl: String?, imageUrl: String?, userUid: String?) {
         this.text = text
         this.name = name
         this.photoUrl = photoUrl
         this.imageUrl = imageUrl
+        this.userUid = userUid
     }
 }

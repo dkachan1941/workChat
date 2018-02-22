@@ -22,7 +22,6 @@
                     android:scheme="http" />
             </intent-filter>
         </activity>
-        <activity android:name=".SignInActivity" />
 
         <service
             android:name=".MyFirebaseMessagingService"
@@ -39,14 +38,14 @@
             </intent-filter>
         </service>
 
-        <activity android:name=".ChatRoomsActivity">
+        <!--<activity android:name="ac.ChatRoomsActivity">-->
 
-            <!-- <intent-filter> -->
-            <!-- <action android:name="android.intent.action.MAIN" /> -->
-            <!-- <category android:name="android.intent.category.LAUNCHER" /> -->
-            <!-- </intent-filter> -->
-        </activity>
-        <activity android:name=".NewChatActivity" />
+            <!--&lt;!&ndash; <intent-filter> &ndash;&gt;-->
+            <!--&lt;!&ndash; <action android:name="android.intent.action.MAIN" /> &ndash;&gt;-->
+            <!--&lt;!&ndash; <category android:name="android.intent.category.LAUNCHER" /> &ndash;&gt;-->
+            <!--&lt;!&ndash; </intent-filter> &ndash;&gt;-->
+        <!--</activity>-->
+
         <activity android:name=".activities.MenuActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

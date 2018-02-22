@@ -5,6 +5,9 @@ package com.rainmaker.workchat
  *
  */
 
+// config
+const val MY_MESSAGE_COLOR = R.color.green_light
+const val FOREIGN_MESSAGE_COLOR = R.color.white
 const val TAG = "WorkChat"
 
 // chat
@@ -38,3 +41,4 @@ const val ANONYMOUS = "anonymous"
 
 // links
 const val LOADING_IMAGE_URL = "https://www.google.com/images/spin-32.gif"
+

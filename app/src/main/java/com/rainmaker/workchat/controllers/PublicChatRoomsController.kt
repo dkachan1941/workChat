@@ -20,11 +20,12 @@ class PublicChatRoomsController : Controller() {
     private lateinit var mLinearLayoutManager: LinearLayoutManager
     private lateinit var mProgressBar: ProgressBar
     private lateinit var textViewNoChats: TextView
-    private var chatsAdapter = ChatsAdapter(ArrayList())
+    private lateinit var chatsAdapter: ChatsAdapter
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup): View {
         val view = inflater.inflate(R.layout.activity_chat_rooms, container, false)
         FirebaseMessaging.getInstance().subscribeToTopic(NOTIFICATIONS_TOPIC)
+        chatsAdapter = ChatsAdapter(ArrayList())
         setUpViews(view)
         setUpFireBaseListener(view)
         return view

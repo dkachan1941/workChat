@@ -44,4 +44,6 @@
     <string name="msg_new_user_added">A new user added</string>
     <string name="msg_user_exists">User already exists</string>
     <string name="err_image_loading">Image upload task was not successful.</string>
+    <string name="msg_cannot_send_msg_if_no_signed_in">Sign in if you want to send messages.</string>
+    <string name="latest_msg_from">Latest message from %s</string>
 </resources>
