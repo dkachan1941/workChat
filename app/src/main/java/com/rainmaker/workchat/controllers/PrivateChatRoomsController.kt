@@ -16,6 +16,7 @@ import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.DatabaseReference
 import com.rainmaker.workchat.*
 import com.rainmaker.workchat.R
+import java.util.HashMap
 
 class PrivateChatRoomsController : Controller() {
 
@@ -26,15 +27,35 @@ class PrivateChatRoomsController : Controller() {
     private lateinit var mProgressBar: ProgressBar
     private lateinit var textViewNoChats: TextView
     private lateinit var chatsAdapter: ChatsAdapter
+    private lateinit var chatsList: List<ChatModel1?>
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup): View {
         val view = inflater.inflate(R.layout.activity_chat_rooms, container, false)
-        FirebaseMessaging.getInstance().subscribeToTopic(NOTIFICATIONS_TOPIC)
         mFirebaseAuth = FirebaseAuth.getInstance()
         chatsAdapter = ChatsAdapter(ArrayList())
         setUpViews(view)
         setUpFireBaseListener(view)
         return view
+    }
+
+    private fun setUpNewMessagesListener() {
+        val mFirebaseDatabaseReference = FirebaseDatabase.getInstance().reference
+        val ref = mFirebaseDatabaseReference.child(CHILD_USERS).child(mFirebaseAuth.currentUser?.uid).child(CHILD_NEW_MESSAGES).ref
+        ref.addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                val newMessages: HashMap<String?, String?>? = dataSnapshot.value as HashMap<String?, String?>?  // todo !!!
+                if (newMessages != null) {
+                    chatsList.forEachIndexed { index, chatModel1 ->
+                        if (newMessages.containsKey(chatModel1?.key)){
+                            chatsList[index]?.messageCount = newMessages[chatModel1?.key]?.toInt()
+                            chatsAdapter.notifyItemChanged(index)
+                        }
+                    }
+                }
+            }
+
+            override fun onCancelled(databaseError: DatabaseError) {}
+        })
     }
 
     private fun setUpFireBaseListener(view: View) {
@@ -43,7 +64,9 @@ class PrivateChatRoomsController : Controller() {
                 .equalTo(mFirebaseAuth.currentUser?.displayName)
                 .addValueEventListener(object : ValueEventListener{
                     override fun onDataChange(p0: DataSnapshot?) {
-                        val chatsList = p0?.children?.map { it.getValue(ChatModel1::class.java) }
+                        val chatsListTemp = p0?.children?.map { it.getValue(ChatModel1::class.java) }
+                        chatsList = chatsListTemp ?: mutableListOf()
+                        setUpNewMessagesListener()
                         p0?.children?.mapIndexed { index, dataSnapshot ->
                             chatsList?.get(index)?.key = dataSnapshot.key
                         }

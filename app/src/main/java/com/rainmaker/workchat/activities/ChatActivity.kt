@@ -6,9 +6,7 @@ import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Bundle
 import android.preference.PreferenceManager
-import android.support.v4.content.ContextCompat
 import android.support.v7.app.AppCompatActivity
-import android.support.v7.widget.CardView
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.support.v7.widget.Toolbar
@@ -16,11 +14,9 @@ import android.text.Editable
 import android.text.InputFilter
 import android.text.TextWatcher
 import android.util.Log
-import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
@@ -28,7 +24,6 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 
-import com.bumptech.glide.Glide
 import com.firebase.ui.database.FirebaseRecyclerAdapter
 import com.firebase.ui.database.FirebaseRecyclerOptions
 import com.firebase.ui.database.SnapshotParser
@@ -43,12 +38,16 @@ import com.google.firebase.database.ValueEventListener
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
 import com.rainmaker.workchat.*
+import com.rainmaker.workchat.presenters.FirebasePresenter
 
 import java.util.HashMap
 
-import de.hdodenhof.circleimageview.CircleImageView
+import javax.inject.Inject
 
-class ChatActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedListener {
+class ChatActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedListener, ChatFireBaseAdapter.ChatAdapterListener {
+
+    @Inject
+    lateinit var firebasePresenter: FirebasePresenter
 
     private lateinit var mUsername: String
     private lateinit var mPhotoUrl: String
@@ -56,7 +55,7 @@ class ChatActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedList
     private lateinit var mSendButton: Button
     private lateinit var mMessageRecyclerView: RecyclerView
     private lateinit var mLinearLayoutManager: LinearLayoutManager
-    private lateinit var mFirebaseAdapter: FirebaseRecyclerAdapter<MessageModel, MessageViewHolder>
+    private lateinit var mFirebaseAdapter: FirebaseRecyclerAdapter<MessageModel, ChatFireBaseAdapter.MessageViewHolder>
     private lateinit var mProgressBar: ProgressBar
     private lateinit var mFirebaseDatabaseReference: DatabaseReference
     private lateinit var mFirebaseAuth: FirebaseAuth
@@ -67,44 +66,26 @@ class ChatActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedList
     private lateinit var chatId: String
     private lateinit var textViewNoNewMessages: TextView
 
-    class MessageViewHolder(v: View) : RecyclerView.ViewHolder(v) {
-        internal var messageTextView: TextView = itemView.findViewById(R.id.messageTextView)
-        internal var messageImageView: ImageView = itemView.findViewById(R.id.messageImageView)
-        internal var messengerTextView: TextView = itemView.findViewById(R.id.messengerTextView)
-        internal var messengerImageView: CircleImageView = itemView.findViewById(R.id.messengerImageView)
-        internal var messageLayout: CardView = itemView.findViewById(R.id.card_chat_layout)
-        private var mClickListener: MessageViewHolder.ClickListener? = null
-
-        interface ClickListener {
-            fun onItemClick(view: View, position: Int)
-            fun onItemLongClick(view: View, position: Int)
-        }
-
-        fun setOnClickListener(clickListener: MessageViewHolder.ClickListener) {
-            mClickListener = clickListener
-        }
-
-        init {
-            itemView.setOnClickListener { view -> mClickListener?.onItemClick(view, adapterPosition) }
-        }
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        (applicationContext as App).component.inject(this@ChatActivity)
         mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(this)
         chatName = intent?.getStringExtra(CHAT_NAME) ?: ""
         chatId = intent?.getStringExtra(CHAT_ID) ?: ""
         checkAuth()
         setUpViews()
+        setUpChatRecyclerView()
+    }
 
+    private fun setUpChatRecyclerView() {
         mFirebaseDatabaseReference = FirebaseDatabase.getInstance().reference
         val parser = SnapshotParser<MessageModel> { dataSnapshot ->
-            val friendlyMessage = dataSnapshot.getValue(MessageModel::class.java)
-            if (friendlyMessage != null) {
-                friendlyMessage.id = dataSnapshot.key
+            val chatMessage = dataSnapshot.getValue(MessageModel::class.java)
+            if (chatMessage != null) {
+                chatMessage.id = dataSnapshot.key
             }
-            friendlyMessage
+            chatMessage
         }
         val messagesRef = mFirebaseDatabaseReference.child(CHILD_ROOMS).child(chatId).child(CHILD_MESSAGES)
         val options = FirebaseRecyclerOptions.Builder<MessageModel>()
@@ -126,74 +107,7 @@ class ChatActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedList
             }
         })
 
-        mFirebaseAdapter = object : FirebaseRecyclerAdapter<MessageModel, MessageViewHolder>(options) {
-            override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MessageViewHolder {
-                val inflater = LayoutInflater.from(parent.context)
-                val viewHolder = MessageViewHolder(inflater.inflate(R.layout.item_message, parent, false))
-                viewHolder.setOnClickListener(object : MessageViewHolder.ClickListener {
-                    override fun onItemClick(view: View, position: Int) {
-                        // todo
-                    }
-                    override fun onItemLongClick(view: View, position: Int) {
-                        // todo
-                    }
-                })
-                return viewHolder
-            }
-
-            override fun onBindViewHolder(viewHolder: MessageViewHolder,
-                                          position: Int,
-                                          curMessage: MessageModel) {
-                mProgressBar.visibility = ProgressBar.INVISIBLE
-                setMessageColor(viewHolder.messageLayout, mFirebaseAuth.currentUser, curMessage.userUid)
-                if (curMessage.text != null) {
-                    viewHolder.messageTextView.text = curMessage.text
-                    viewHolder.messageTextView.visibility = TextView.VISIBLE
-                    viewHolder.messageImageView.visibility = ImageView.GONE
-                } else if (LOADING_IMAGE_URL != curMessage.imageUrl) {
-                    val imageUrl = curMessage.imageUrl
-                    if (imageUrl != null && imageUrl.startsWith("gs://")) {
-                        val storageReference = FirebaseStorage.getInstance()
-                                .getReferenceFromUrl(imageUrl)
-                        storageReference.downloadUrl.addOnCompleteListener { task ->
-                            if (task.isSuccessful) {
-                                val downloadUrl = task.result.toString()
-                                Glide.with(viewHolder.messageImageView.context)
-                                        .load(downloadUrl)
-                                        .into(viewHolder.messageImageView)
-                            } else {
-                                Log.w(TAG, resources.getString(R.string.err_making_request), task.exception)
-                            }
-                        }
-                    } else {
-                        Glide.with(viewHolder.messageImageView.context)
-                                .load(curMessage.imageUrl)
-                                .into(viewHolder.messageImageView)
-                    }
-                    viewHolder.messageImageView.visibility = ImageView.VISIBLE
-                    viewHolder.messageTextView.visibility = TextView.GONE
-                }
-
-                viewHolder.messengerTextView.text = curMessage.name
-                if (curMessage.photoUrl == null) {
-                    viewHolder.messengerImageView.setImageDrawable(ContextCompat.getDrawable(this@ChatActivity,
-                            R.drawable.ic_account_circle_black_36dp))
-                } else {
-                    Glide.with(this@ChatActivity)
-                            .load(curMessage.photoUrl)
-                            .into(viewHolder.messengerImageView)
-                }
-            }
-
-            private fun setMessageColor(messageLayout: android.support.v7.widget.CardView, currentUser: com.google.firebase.auth.FirebaseUser?, userUid: kotlin.String?) {
-                when {
-                    currentUser == null -> messageLayout.setBackgroundColor(resources.getColor(FOREIGN_MESSAGE_COLOR)) // todo
-                    currentUser.uid == userUid -> messageLayout.setBackgroundColor(resources.getColor(MY_MESSAGE_COLOR))
-                    else -> messageLayout.setBackgroundColor(resources.getColor(FOREIGN_MESSAGE_COLOR))
-                }
-            }
-        }
-
+        mFirebaseAdapter = ChatFireBaseAdapter(applicationContext, this@ChatActivity, options, mFirebaseAuth.currentUser)
         mFirebaseAdapter.registerAdapterDataObserver(object : RecyclerView.AdapterDataObserver() {
             override fun onItemRangeInserted(positionStart: Int, itemCount: Int) {
                 super.onItemRangeInserted(positionStart, itemCount)
@@ -207,38 +121,26 @@ class ChatActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedList
         })
         mMessageRecyclerView.layoutManager = mLinearLayoutManager
         mMessageRecyclerView.adapter = mFirebaseAdapter
+    }
 
-        mMessageEditText.filters = arrayOf<InputFilter>(InputFilter.LengthFilter(mSharedPreferences
-                .getInt(CodelabPreferences.FRIENDLY_MSG_LENGTH, DEFAULT_MSG_LENGTH_LIMIT)))
-        mMessageEditText.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(charSequence: CharSequence, i: Int, i1: Int, i2: Int) {}
-
-            override fun onTextChanged(charSequence: CharSequence, i: Int, i1: Int, i2: Int) {
-                mSendButton.isEnabled = charSequence.toString().trim { it <= ' ' }.isNotEmpty()
-            }
-
-            override fun afterTextChanged(editable: Editable) {}
-        })
-
-        mAddMessageImageView.setOnClickListener {
-            if (mFirebaseAuth.currentUser == null) {
-                Toast.makeText(baseContext, getString(R.string.msg_cannot_send_msg_if_no_signed_in), Toast.LENGTH_SHORT).show()
-            } else {
-                val intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
-                intent.addCategory(Intent.CATEGORY_OPENABLE)
-                intent.type = "image/*"
-                startActivityForResult(intent, REQUEST_IMAGE)
-            }
+    private fun addImageIfUserLoggedIn() {
+        if (mFirebaseAuth.currentUser == null) {
+            Toast.makeText(baseContext, getString(R.string.msg_cannot_send_msg_if_no_signed_in), Toast.LENGTH_SHORT).show()
+        } else {
+            val intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
+            intent.addCategory(Intent.CATEGORY_OPENABLE)
+            intent.type = "image/*"
+            startActivityForResult(intent, REQUEST_IMAGE)
         }
+    }
 
-        mSendButton.setOnClickListener {
-            if (mFirebaseAuth.currentUser == null) {
-                Toast.makeText(baseContext, getString(R.string.msg_cannot_send_msg_if_no_signed_in), Toast.LENGTH_SHORT).show()
-            } else {
-                val workchatMessage = MessageModel(mMessageEditText.text.toString(), mUsername, mPhotoUrl, null, mFirebaseAuth.currentUser?.uid)
-                mFirebaseDatabaseReference.child(CHILD_ROOMS).child(chatId).child(CHILD_MESSAGES).push().setValue(workchatMessage)
-                mMessageEditText.setText("")
-            }
+    private fun sendMessageIfUserLoggedIn() {
+        if (mFirebaseAuth.currentUser == null) {
+            Toast.makeText(baseContext, getString(R.string.msg_cannot_send_msg_if_no_signed_in), Toast.LENGTH_SHORT).show()
+        } else {
+            val newMessage = MessageModel(mMessageEditText.text.toString(), mUsername, mPhotoUrl, null, mFirebaseAuth.currentUser?.uid)
+            firebasePresenter.sendMessage(mFirebaseDatabaseReference, newMessage, chatId, true, null)
+            mMessageEditText.setText("")
         }
     }
 
@@ -259,6 +161,23 @@ class ChatActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedList
             supportActionBar?.title = chatName
             supportActionBar?.setHomeButtonEnabled(true)
             supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        }
+
+        mMessageEditText.filters = arrayOf<InputFilter>(InputFilter.LengthFilter(DEFAULT_MSG_LENGTH_LIMIT))
+        mMessageEditText.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(charSequence: CharSequence, i: Int, i1: Int, i2: Int) {}
+            override fun onTextChanged(charSequence: CharSequence, i: Int, i1: Int, i2: Int) {
+                mSendButton.isEnabled = charSequence.toString().trim { it <= ' ' }.isNotEmpty()
+            }
+            override fun afterTextChanged(editable: Editable) {}
+        })
+
+        mAddMessageImageView.setOnClickListener {
+            addImageIfUserLoggedIn()
+        }
+
+        mSendButton.setOnClickListener {
+            sendMessageIfUserLoggedIn()
         }
     }
 
@@ -285,6 +204,7 @@ class ChatActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedList
 
     public override fun onDestroy() {
         super.onDestroy()
+        firebasePresenter.resetNewMessagesCount(mFirebaseAuth.currentUser?.uid, chatId)
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -347,9 +267,14 @@ class ChatActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedList
                         if (users != null) {
                             if (!users.containsKey(userUid)) {
                                 users[userUid] = userName
+
+                                // add user
                                 mFirebaseDatabaseReference.child(CHILD_ROOMS).child(chatId).child(CHILD_USERS).setValue(users)
+
+                                // add user added msg
                                 val chatMsg = MessageModel(resources.getString(R.string.msg_new_user_added), mUsername, mPhotoUrl, null, mFirebaseAuth.currentUser?.uid)
                                 mFirebaseDatabaseReference.child(CHILD_ROOMS).child(chatId).child(CHILD_MESSAGES).push().setValue(chatMsg)
+
                             } else {
                                 Toast.makeText(this@ChatActivity, resources.getString(R.string.msg_user_exists), Toast.LENGTH_SHORT).show()
                             }
@@ -366,9 +291,8 @@ class ChatActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedList
         storageReference.putFile(uri!!).addOnCompleteListener(this@ChatActivity
         ) { task ->
             if (task.isSuccessful) {
-                val friendlyMessage = MessageModel(null, mUsername, mPhotoUrl, task.result.downloadUrl?.toString(), mFirebaseAuth.currentUser?.uid)
-                mFirebaseDatabaseReference.child(CHILD_ROOMS).child(chatId).child(CHILD_MESSAGES).child(key)
-                        .setValue(friendlyMessage)
+                val newMessage = MessageModel(null, mUsername, mPhotoUrl, task.result.downloadUrl?.toString(), mFirebaseAuth.currentUser?.uid)
+                firebasePresenter.sendMessage(mFirebaseDatabaseReference, newMessage, chatId, false, key)
             } else {
                 Log.w(TAG, resources.getString(R.string.err_image_loading),
                         task.exception)
@@ -378,6 +302,18 @@ class ChatActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedList
 
     override fun onConnectionFailed(connectionResult: ConnectionResult) {
         Log.d(TAG, resources.getString(R.string.err_google_services) + connectionResult)
+    }
+
+    override fun onChatAdapterFirstItemLoaded() {
+        mProgressBar.visibility = ProgressBar.INVISIBLE
+    }
+
+    override fun onChatAdapterItemClick(item: MessageModel) {
+
+    }
+
+    override fun onChatAdapterItemLongClick(item: MessageModel) {
+
     }
 
 }

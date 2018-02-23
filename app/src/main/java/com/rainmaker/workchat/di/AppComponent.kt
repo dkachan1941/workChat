@@ -1,7 +1,10 @@
 package com.rainmaker.workchat.di
 
 import com.rainmaker.workchat.App
+import com.rainmaker.workchat.activities.ChatActivity
+import com.rainmaker.workchat.activities.ChatParticipantsActivity
 import com.rainmaker.workchat.activities.MenuActivity
+import com.rainmaker.workchat.activities.SelectUserActivity
 import com.rainmaker.workchat.controllers.CreateChatController
 import com.rainmaker.workchat.controllers.SignInController
 import com.rainmaker.workchat.presenters.FirebasePresenterImpl
@@ -20,4 +23,7 @@ interface AppComponent {
     fun inject(target: SignInController)
     fun inject(target: FirebasePresenterImpl)
     fun inject(target: CreateChatController)
+    fun inject(target: ChatActivity)
+    fun inject(target: ChatParticipantsActivity)
+    fun inject(target: SelectUserActivity)
 }

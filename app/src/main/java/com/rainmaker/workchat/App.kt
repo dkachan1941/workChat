@@ -7,6 +7,7 @@ import com.rainmaker.workchat.di.DaggerAppComponent
 
 /**
  * Created by dmitry on 1/30/18.
+ *
  */
 class App : Application() {
 

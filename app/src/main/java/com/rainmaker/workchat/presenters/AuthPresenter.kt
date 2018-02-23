@@ -5,5 +5,4 @@ package com.rainmaker.workchat.presenters
  */
 interface AuthPresenter {
     fun signIn()
-
 }

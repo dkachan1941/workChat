@@ -31,6 +31,7 @@ const val CHILD_ROOMS = "rooms"
 const val CHILD_USERS = "users"
 const val FIELD_IS_PUBLIC = "isPublic"
 const val CHILD_MESSAGES = "messages"
+const val CHILD_NEW_MESSAGES = "newMessages"
 
 // fireBase
 const val RC_SIGN_IN = 9001
@@ -41,4 +42,9 @@ const val ANONYMOUS = "anonymous"
 
 // links
 const val LOADING_IMAGE_URL = "https://www.google.com/images/spin-32.gif"
+
+// notifications
+const val PUSH_NOTIFICATION = "pushNotification"
+const val NOTIFICATION_ID_BIG_IMAGE = 101
+const val NOTIFICATION_ID = 100
 

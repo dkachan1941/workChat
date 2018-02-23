@@ -27,6 +27,8 @@ import com.google.android.gms.auth.api.Auth
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.api.GoogleApiClient
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.iid.FirebaseInstanceId
+import com.google.firebase.messaging.FirebaseMessaging
 import com.mikepenz.materialdrawer.Drawer
 import com.mikepenz.materialdrawer.model.PrimaryDrawerItem
 import com.mikepenz.materialdrawer.model.interfaces.IDrawerItem
@@ -59,6 +61,13 @@ class MenuActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedList
         initRouter(savedInstanceState)
         checkAuth()
         initViews()
+        subscribeToNotifications()
+    }
+
+    private fun subscribeToNotifications() {
+        if (mFirebaseAuth.currentUser != null) {
+            FirebaseMessaging.getInstance().subscribeToTopic(mFirebaseAuth.currentUser?.uid)
+        }
     }
 
     private fun initRouter(savedInstanceState: Bundle?) {
@@ -219,6 +228,7 @@ class MenuActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedList
     }
 
     private fun signOut() {
+        FirebaseMessaging.getInstance().unsubscribeFromTopic(mFirebaseAuth.currentUser?.uid)
         mFirebaseAuth.signOut()
         Auth.GoogleSignInApi.signOut(mGoogleApiClient)
         mUsername = ANONYMOUS
@@ -256,6 +266,7 @@ class MenuActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedList
                 removeStickyFooterItemAtPosition(0)
                 addStickyFooterItem(createSignOutDrawerItem())
             }
+            subscribeToNotifications()
         } else {
             Toast.makeText(applicationContext, resources.getString(R.string.err_auth_err), Toast.LENGTH_SHORT).show()
         }

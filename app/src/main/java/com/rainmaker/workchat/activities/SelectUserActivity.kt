@@ -6,14 +6,15 @@ import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.ValueEventListener
-import com.google.firebase.database.FirebaseDatabase
 import android.support.v7.widget.DividerItemDecoration
 import com.rainmaker.workchat.*
+import com.rainmaker.workchat.presenters.FirebasePresenter
+import javax.inject.Inject
 
-class SelectUserActivity : AppCompatActivity() {
+class SelectUserActivity : AppCompatActivity(), FirebasePresenter.FirebasePresenterListener {
+
+    @Inject
+    lateinit var firebasePresenter: FirebasePresenter
 
     lateinit var usersRecyclerView: RecyclerView
     lateinit var mLinearLayoutManager: LinearLayoutManager
@@ -22,23 +23,8 @@ class SelectUserActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_select_user)
+        (applicationContext as App).component.inject(this@SelectUserActivity)
         setUpViews()
-        setUpFireBaseListener()
-    }
-
-    private fun setUpFireBaseListener() {
-        val eventListener = object : ValueEventListener {
-            override fun onDataChange(dataSnapshot: DataSnapshot) {
-                val userList: List<User?> = dataSnapshot.children.map { it.getValue(User::class.java) }
-                if (userList.isNotEmpty()){
-                    usersAdapter.chatList = ArrayList(userList)
-                    usersAdapter.notifyDataSetChanged()
-                }
-            }
-            override fun onCancelled(databaseError: DatabaseError) {}
-        }
-        FirebaseDatabase.getInstance().reference.child(CHILD_USERS)
-                .addListenerForSingleValueEvent(eventListener)
     }
 
     private fun setUpViews() {
@@ -57,5 +43,13 @@ class SelectUserActivity : AppCompatActivity() {
         usersRecyclerView.addItemDecoration(
                 DividerItemDecoration(usersRecyclerView.context, DividerItemDecoration.VERTICAL)
         )
+        firebasePresenter.requestAllUsers(this@SelectUserActivity)
+    }
+
+    override fun onChatUsersLoaded(users: List<User?>?) {
+        if (users !== null && users.isNotEmpty()){
+            usersAdapter.chatList = ArrayList(users)
+            usersAdapter.notifyDataSetChanged()
+        }
     }
 }
