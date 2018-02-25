@@ -76,6 +76,11 @@ class ChatActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedList
         checkAuth()
         setUpViews()
         setUpChatRecyclerView()
+        setMessagesViewed()
+    }
+
+    private fun setMessagesViewed() {
+        firebasePresenter.resetNewMessagesCount(mFirebaseAuth.currentUser?.uid, chatId)
     }
 
     private fun setUpChatRecyclerView() {
@@ -138,6 +143,8 @@ class ChatActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedList
         if (mFirebaseAuth.currentUser == null) {
             Toast.makeText(baseContext, getString(R.string.msg_cannot_send_msg_if_no_signed_in), Toast.LENGTH_SHORT).show()
         } else {
+//            val encryptedMessage = AESEncryptionDecryption.encrypt(mMessageEditText.text.toString())
+//            val newMessage = MessageModel(encryptedMessage, mUsername, mPhotoUrl, null, mFirebaseAuth.currentUser?.uid)
             val newMessage = MessageModel(mMessageEditText.text.toString(), mUsername, mPhotoUrl, null, mFirebaseAuth.currentUser?.uid)
             firebasePresenter.sendMessage(mFirebaseDatabaseReference, newMessage, chatId, true, null)
             mMessageEditText.setText("")
@@ -204,7 +211,7 @@ class ChatActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedList
 
     public override fun onDestroy() {
         super.onDestroy()
-        firebasePresenter.resetNewMessagesCount(mFirebaseAuth.currentUser?.uid, chatId)
+        setMessagesViewed()
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {

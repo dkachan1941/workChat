@@ -70,7 +70,7 @@ class FirebasePresenterImpl: FirebasePresenter {
     }
 
     private fun addUnRedMessageForUser(user: User?, chatId: String) {
-
+        if (user?.uuid == FirebaseAuth.getInstance().currentUser?.uid) return
         val mFirebaseDatabaseReference = FirebaseDatabase.getInstance().reference
         val ref = mFirebaseDatabaseReference.child(CHILD_USERS).child(user?.uuid).child(CHILD_NEW_MESSAGES).ref
         ref.addListenerForSingleValueEvent(object : ValueEventListener {

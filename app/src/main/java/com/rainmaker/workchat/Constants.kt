@@ -26,6 +26,7 @@ const val USER_UID = "user_uid"
 const val CHAT_ID = "chat_id"
 const val CHAT_NAME = "chatName"
 
+
 // fireBase db
 const val CHILD_ROOMS = "rooms"
 const val CHILD_USERS = "users"
@@ -47,4 +48,8 @@ const val LOADING_IMAGE_URL = "https://www.google.com/images/spin-32.gif"
 const val PUSH_NOTIFICATION = "pushNotification"
 const val NOTIFICATION_ID_BIG_IMAGE = 101
 const val NOTIFICATION_ID = 100
+const val NOTIFICATION_CHANNEL_ONE_ID = "com.rainmaker.WorkChat.ONE"
+const val NOTIFICATION_CHANNEL_ONE_NAME = "WorkChat"
+const val NOTIFICATION_TITLE = "notification_title"
+const val NOTIFICATION_JOB_TAG = "notification-job-tag"
 

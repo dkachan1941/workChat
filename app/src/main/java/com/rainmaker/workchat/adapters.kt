@@ -157,6 +157,13 @@ class ChatFireBaseAdapter(private var context: Context, private var listener: Ch
         listener.onChatAdapterFirstItemLoaded()
         setMessageColor(viewHolder.messageLayout, currentUser, curMessage.userUid)
         if (curMessage.text != null) {
+//            try{
+//                val encryptedMessage = AESEncryptionDecryption.decrypt(curMessage.text)
+//                viewHolder.messageTextView.text = encryptedMessage
+//            } catch (e: Exception){
+//                viewHolder.messageTextView.text = ""
+//                Log.e(TAG, e.message)
+//            }
             viewHolder.messageTextView.text = curMessage.text
             viewHolder.messageTextView.visibility = TextView.VISIBLE
             viewHolder.messageImageView.visibility = ImageView.GONE

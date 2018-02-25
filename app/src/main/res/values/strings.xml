@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Work Chat</string>
+    <string name="app_name">Safe chat</string>
     <string name="welcome_msg">Welcome!</string>
     <string name="sign_out">Sign Out</string>
     <string name="contacts_permission_rationale">Access to account information is required to sign in.</string>
@@ -46,4 +46,12 @@
     <string name="err_image_loading">Image upload task was not successful.</string>
     <string name="msg_cannot_send_msg_if_no_signed_in">Sign in if you want to send messages.</string>
     <string name="latest_msg_from">Latest message from %s</string>
+    <string name="public_chat">Public</string>
+    <string name="private_chat">Private</string>
+    <string name="msg_create_chat_chatname">Chat name thet will be displayed</string>
+    <string name="msg_create_chat_password">Every user will have to enter this password to enter the chat (Optional)</string>
+    <string name="password">Password</string>
+    <string name="encription_password">Encription password</string>
+    <string name="msg_encription_password">If you set this password, all messages in this chat will be encrypted by it and all members should enter it in option otherwise they will not be able to read messages. If you forget this password you will lose access to messages (Optional)</string>
+    <string name="msg_create_chat_private_public">Public chat will be available for every user signed in this application, private chat will be available for you and users who you choose.</string>
 </resources>

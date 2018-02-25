@@ -104,19 +104,19 @@ class MenuActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedList
 
             primaryItem(getString(R.string.home)){
                 identifier = 100
-                icon = R.drawable.abc_ic_star_black_48dp
+                icon = R.drawable.home
                 onClick(pushController(HomeController::class))
             }
 
             primaryItem(getString(R.string.public_chats)){
                 identifier = 101
-                icon = R.drawable.abc_ic_star_black_48dp
+                icon = R.drawable.public_accessibility
                 onClick(pushController(PublicChatRoomsController::class))
             }
 
             primaryItem(getString(R.string.private_chats)){
                 identifier = 102
-                icon = R.drawable.abc_ic_star_black_48dp
+                icon = R.drawable.privacy
                 onClick(pushController(PrivateChatRoomsController::class))
             }
 
@@ -124,12 +124,12 @@ class MenuActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedList
 
             primaryItem(getString(R.string.create_chats)){
                 identifier = 103
-                icon = R.drawable.abc_ic_star_black_48dp
+                icon = R.drawable.add_new
                 onClick(pushController(CreateChatController::class))
             }
             primaryItem(getString(R.string.settings)){
                 identifier = 104
-                icon = R.drawable.abc_ic_star_black_48dp
+                icon = R.drawable.settings
                 onClick(pushController(SettingsController::class))
             }
 
@@ -137,7 +137,7 @@ class MenuActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedList
 
             primaryItem(getString(R.string.about)){
                 identifier = 105
-                icon = R.drawable.abc_ic_star_black_48dp
+                icon = R.drawable.about
                 onClick(pushController(AboutController::class))
             }
 
@@ -145,7 +145,7 @@ class MenuActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedList
 
             primaryItem(getString(R.string.invite_friend)){
                 identifier = 106
-                icon = R.drawable.abc_ic_star_black_48dp
+                icon = R.drawable.invite
                 onClick(sendInvitation())
             }
 
@@ -202,6 +202,7 @@ class MenuActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedList
     private fun createSignOutDrawerItem(): IDrawerItem<*, *> {
         return PrimaryDrawerItem()
                 .withName(R.string.sign_out)
+                .withIcon(R.drawable.logout)
                 .withOnDrawerItemClickListener({ _, _, _ ->
                     signOut()
                     with(drawerResult){
@@ -219,6 +220,7 @@ class MenuActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedList
     private fun createSignInDrawerItem(): IDrawerItem<*, *> {
         return PrimaryDrawerItem()
                 .withName(R.string.sign_in)
+                .withIcon(R.drawable.login)
                 .withOnDrawerItemClickListener({ _, _, _ ->
                     with(drawerResult){
                         router.setRoot(RouterTransaction.with(SignInController()))

@@ -40,7 +40,7 @@ class PrivateChatRoomsController : Controller() {
 
     private fun setUpNewMessagesListener() {
         val mFirebaseDatabaseReference = FirebaseDatabase.getInstance().reference
-        val ref = mFirebaseDatabaseReference.child(CHILD_USERS).child(mFirebaseAuth.currentUser?.uid).child(CHILD_NEW_MESSAGES).ref
+        val ref = mFirebaseDatabaseReference.child(CHILD_USERS).child(mFirebaseAuth.currentUser?.uid ?: "").child(CHILD_NEW_MESSAGES).ref
         ref.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 val newMessages: HashMap<String?, String?>? = dataSnapshot.value as HashMap<String?, String?>?  // todo !!!

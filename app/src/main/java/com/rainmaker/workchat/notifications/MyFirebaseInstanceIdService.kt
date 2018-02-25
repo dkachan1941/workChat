@@ -1,9 +1,10 @@
 
-package com.rainmaker.workchat
+package com.rainmaker.workchat.notifications
 
 import android.util.Log
 import com.google.firebase.iid.FirebaseInstanceId
 import com.google.firebase.iid.FirebaseInstanceIdService
+import com.rainmaker.workchat.TAG
 
 class MyFirebaseInstanceIdService : FirebaseInstanceIdService() {
 
