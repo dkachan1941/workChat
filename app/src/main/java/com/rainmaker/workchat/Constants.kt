@@ -53,3 +53,6 @@ const val NOTIFICATION_CHANNEL_ONE_NAME = "WorkChat"
 const val NOTIFICATION_TITLE = "notification_title"
 const val NOTIFICATION_JOB_TAG = "notification-job-tag"
 
+// shared preferences
+const val PREFERENCES_NAME = "safePrefsName"
+

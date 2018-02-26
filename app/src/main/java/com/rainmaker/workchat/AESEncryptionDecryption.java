@@ -13,7 +13,7 @@ public class AESEncryptionDecryption {
 //    private static final byte[] keyValue =
 //            new byte[]{'c', 'o', 'd', 'i', 'n', 'g', 'a', 'f', 'f', 'a', 'i', 'r', 's', 'c', 'o', 'm'};
 
-    private static final byte[] keyValue = "gmdcvbnmhgfy0000".getBytes();
+    public static byte[] keyValue = "gmdcvbnmhgfy0000".getBytes();
 
 
     public static String encrypt(String cleartext)

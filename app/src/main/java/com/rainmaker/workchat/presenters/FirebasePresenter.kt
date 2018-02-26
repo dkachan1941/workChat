@@ -13,7 +13,7 @@ interface FirebasePresenter {
         fun onChatUsersLoaded(users: List<User?>?)
     }
 
-    fun createChat(text: String)
+    fun createChat(text: String, password: String, encryptionPw: String, private: Boolean)
     fun pushUserToDb(uuid: String?, email: String?, displayName: String?, providerId: String?)
     fun sendMessage(mFirebaseDatabaseReference: DatabaseReference?, newMessage: MessageModel, chatId: String, isUpdate: Boolean, key: String?)
     fun requestUsersForChat(chatId: String?, listener: FirebasePresenterListener?)

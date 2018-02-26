@@ -54,4 +54,6 @@
     <string name="encription_password">Encription password</string>
     <string name="msg_encription_password">If you set this password, all messages in this chat will be encrypted by it and all members should enter it in option otherwise they will not be able to read messages. If you forget this password you will lose access to messages (Optional)</string>
     <string name="msg_create_chat_private_public">Public chat will be available for every user signed in this application, private chat will be available for you and users who you choose.</string>
+    <string name="use_encryption_key">Set encryption password</string>
+    <string name="clear_encryption_key">Clear encryption key</string>
 </resources>

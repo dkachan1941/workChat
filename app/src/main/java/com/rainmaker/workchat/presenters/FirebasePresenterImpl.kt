@@ -36,12 +36,12 @@ class FirebasePresenterImpl: FirebasePresenter {
         })
     }
 
-    override fun createChat(text: String) {
+    override fun createChat(text: String, password: String, encryptionPw: String, private: Boolean) {
         val fireBaseUser = FirebaseAuth.getInstance().currentUser
         if (fireBaseUser != null){
             val users = HashMap<String, String>()
             users[fireBaseUser.uid] = fireBaseUser.displayName ?: ""
-            val newRoom = ChatModel(text, 0, Date().toString(), fireBaseUser.uid, users)
+            val newRoom = ChatModel(text, 0, Date().toString(), fireBaseUser.uid, users, password, encryptionPw, private)
             FirebaseDatabase.getInstance()?.reference?.child(CHILD_ROOMS)?.push()?.setValue(newRoom)
         } else {
             Log.d(TAG, resources.getString(R.string.err_error_creating_chat))

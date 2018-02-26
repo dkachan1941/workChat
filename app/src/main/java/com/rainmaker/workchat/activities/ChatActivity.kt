@@ -1,11 +1,12 @@
 package com.rainmaker.workchat.activities
 
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Bundle
-import android.preference.PreferenceManager
+import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
@@ -38,7 +39,9 @@ import com.google.firebase.database.ValueEventListener
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
 import com.rainmaker.workchat.*
+import com.rainmaker.workchat.R.id.textInputLayoutChatEncriptionPassword
 import com.rainmaker.workchat.presenters.FirebasePresenter
+import org.w3c.dom.Text
 
 import java.util.HashMap
 
@@ -70,7 +73,7 @@ class ChatActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedList
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         (applicationContext as App).component.inject(this@ChatActivity)
-        mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(this)
+        mSharedPreferences = getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
         chatName = intent?.getStringExtra(CHAT_NAME) ?: ""
         chatId = intent?.getStringExtra(CHAT_ID) ?: ""
         checkAuth()
@@ -112,7 +115,7 @@ class ChatActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedList
             }
         })
 
-        mFirebaseAdapter = ChatFireBaseAdapter(applicationContext, this@ChatActivity, options, mFirebaseAuth.currentUser)
+        mFirebaseAdapter = ChatFireBaseAdapter(applicationContext, mSharedPreferences, chatId, this@ChatActivity, options, mFirebaseAuth.currentUser)
         mFirebaseAdapter.registerAdapterDataObserver(object : RecyclerView.AdapterDataObserver() {
             override fun onItemRangeInserted(positionStart: Int, itemCount: Int) {
                 super.onItemRangeInserted(positionStart, itemCount)
@@ -143,11 +146,20 @@ class ChatActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedList
         if (mFirebaseAuth.currentUser == null) {
             Toast.makeText(baseContext, getString(R.string.msg_cannot_send_msg_if_no_signed_in), Toast.LENGTH_SHORT).show()
         } else {
-//            val encryptedMessage = AESEncryptionDecryption.encrypt(mMessageEditText.text.toString())
-//            val newMessage = MessageModel(encryptedMessage, mUsername, mPhotoUrl, null, mFirebaseAuth.currentUser?.uid)
-            val newMessage = MessageModel(mMessageEditText.text.toString(), mUsername, mPhotoUrl, null, mFirebaseAuth.currentUser?.uid)
+            val modifiedMsg = encryptMsgIfRequired(mMessageEditText.text.toString())
+            val newMessage = MessageModel(modifiedMsg, mUsername, mPhotoUrl, null, mFirebaseAuth.currentUser?.uid)
             firebasePresenter.sendMessage(mFirebaseDatabaseReference, newMessage, chatId, true, null)
             mMessageEditText.setText("")
+        }
+    }
+
+    private fun encryptMsgIfRequired(msg: String): String {
+        val pw = mSharedPreferences.getString(chatId, "")
+        return if (pw.isEmpty()){
+            msg
+        } else {
+            AESEncryptionDecryption.keyValue = mSharedPreferences.getString(chatId, "").toByteArray()
+            AESEncryptionDecryption.encrypt(msg)
         }
     }
 
@@ -236,7 +248,50 @@ class ChatActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedList
                 startActivityForResult(intent, CODE_CHANGE_USERS)
                 true
             }
+            R.id.use_encryption_key -> {
+                showEncryptionKeyDialog()
+                true
+            }
+            R.id.clear_encryption_key -> {
+                mSharedPreferences.edit().putString(chatId, "").apply()
+                mFirebaseAdapter.notifyDataSetChanged()
+                true
+            }
             else -> super.onOptionsItemSelected(item)
+        }
+    }
+
+    private fun showEncryptionKeyDialog() {
+        val alert = AlertDialog.Builder(this)
+        val inflater = this.layoutInflater
+        val dialogView = inflater.inflate(R.layout.set_encryption_key_dialog, null) // todo
+        val passwordEditText = dialogView.findViewById<EditText>(R.id.dialog_editText_password)
+
+        with (alert) {
+            setTitle("Set encryption password")
+            setView(dialogView)
+
+            setPositiveButton("Assign") {
+                dialog, _ ->
+                setEncryptionPasswordForChat(passwordEditText.text?.toString() ?: "")
+                dialog.dismiss()
+            }
+
+            setNegativeButton("Cancel") {
+                dialog, _ ->
+                dialog.dismiss()
+            }
+        }
+
+        val dialog = alert.create()
+        dialog.show()
+    }
+
+    private fun setEncryptionPasswordForChat(password: String) {
+        if (password.isNotEmpty()){
+            val encryptionPw = modifyEncryptionKey(password)
+            mSharedPreferences.edit().putString(chatId, encryptionPw).apply()
+            mFirebaseAdapter.notifyDataSetChanged()
         }
     }
 

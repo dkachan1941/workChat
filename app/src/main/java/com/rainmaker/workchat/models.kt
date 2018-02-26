@@ -14,15 +14,21 @@ class ChatModel {
     var creator: String? = null
     var date: String? = null
     var users:  HashMap<String, String> = HashMap()
+    var password: String? = null
+    var encryptionPw: String? = null
+    var isPrivate: Boolean? = null
 
     constructor() {}
 
-    constructor(name: String, status: Int, date: String, creator: String, users: HashMap<String, String>) {
+    constructor(name: String, status: Int, date: String, creator: String, users: HashMap<String, String>, password: String, encryptionPw: String, isPrivate: Boolean) {
         this.name = name
         this.status = status
         this.date = date
         this.creator = creator
         this.users = users
+        this.password = password
+        this.encryptionPw = encryptionPw
+        this.isPrivate = isPrivate
     }
 }
 

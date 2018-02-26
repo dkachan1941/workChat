@@ -6,6 +6,7 @@ import android.graphics.Bitmap
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.support.v4.graphics.drawable.RoundedBitmapDrawableFactory
+import android.support.v7.app.AlertDialog
 import android.util.Log
 import android.view.View
 import android.view.ViewGroup
@@ -27,7 +28,6 @@ import com.google.android.gms.auth.api.Auth
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.api.GoogleApiClient
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.iid.FirebaseInstanceId
 import com.google.firebase.messaging.FirebaseMessaging
 import com.mikepenz.materialdrawer.Drawer
 import com.mikepenz.materialdrawer.model.PrimaryDrawerItem
@@ -250,13 +250,37 @@ class MenuActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedList
             drawerResult.closeDrawer()
         else
             if (!router.handleBack()) {
-                super.onBackPressed()
+                showExitConfirmationAlertDialog("Exit", "Do you want to exit?")
             }
     }
 
     override fun onConnectionFailed(p0: ConnectionResult) {
         Toast.makeText(this, resources.getString(R.string.err_google_services), Toast.LENGTH_SHORT).show()
     }
+
+    private fun showExitConfirmationAlertDialog(dialogTitle: String, dialogMessage: String){
+        val alert = AlertDialog.Builder(this)
+
+        with (alert) {
+            setTitle(dialogTitle)
+            setMessage(dialogMessage)
+
+            setPositiveButton("Ok") {
+                dialog, _ ->
+                dialog.dismiss()
+                finish()
+            }
+
+            setNegativeButton("Cancel") {
+                dialog, _ ->
+                dialog.dismiss()
+            }
+        }
+
+        val dialog = alert.create()
+        dialog.show()
+    }
+
 
     override fun onSignedIn(success: Boolean) {
         if (success){

@@ -8,4 +8,12 @@
         android:id="@+id/all_members_menu"
         android:title="@string/all_members_label"/>
 
+    <item
+        android:id="@+id/use_encryption_key"
+        android:title="@string/use_encryption_key"/>
+
+    <item
+        android:id="@+id/clear_encryption_key"
+        android:title="@string/clear_encryption_key"/>
+
 </menu>

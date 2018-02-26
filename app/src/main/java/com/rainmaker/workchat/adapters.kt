@@ -2,6 +2,7 @@ package com.rainmaker.workchat
 
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.support.v4.content.ContextCompat
 import android.support.v4.content.ContextCompat.startActivity
 import android.support.v7.widget.CardView
@@ -127,7 +128,7 @@ class UsersAdapter(var chatList: ArrayList<User?>, private val listener: (User) 
 /**
  * Adapter for Chat
  */
-class ChatFireBaseAdapter(private var context: Context, private var listener: ChatAdapterListener, options: FirebaseRecyclerOptions<MessageModel>,
+class ChatFireBaseAdapter(private var context: Context, private val sharedPreferences: SharedPreferences, private val  chatId: String, private var listener: ChatAdapterListener, options: FirebaseRecyclerOptions<MessageModel>,
                           private var currentUser: FirebaseUser?): FirebaseRecyclerAdapter<MessageModel,
         ChatFireBaseAdapter.MessageViewHolder>(options) {
 
@@ -157,14 +158,17 @@ class ChatFireBaseAdapter(private var context: Context, private var listener: Ch
         listener.onChatAdapterFirstItemLoaded()
         setMessageColor(viewHolder.messageLayout, currentUser, curMessage.userUid)
         if (curMessage.text != null) {
-//            try{
-//                val encryptedMessage = AESEncryptionDecryption.decrypt(curMessage.text)
-//                viewHolder.messageTextView.text = encryptedMessage
-//            } catch (e: Exception){
-//                viewHolder.messageTextView.text = ""
-//                Log.e(TAG, e.message)
-//            }
-            viewHolder.messageTextView.text = curMessage.text
+            if (!sharedPreferences.getString(chatId, "").isEmpty()){
+                AESEncryptionDecryption.keyValue = sharedPreferences.getString(chatId, "").toByteArray()
+                try {
+                    viewHolder.messageTextView.text = AESEncryptionDecryption.decrypt(curMessage.text)
+                } catch (e: Exception){
+                    viewHolder.messageTextView.text =""
+                }
+            } else {
+                viewHolder.messageTextView.text = curMessage.text
+            }
+//            viewHolder.messageTextView.text = curMessage.text
             viewHolder.messageTextView.visibility = TextView.VISIBLE
             viewHolder.messageImageView.visibility = ImageView.GONE
         } else if (LOADING_IMAGE_URL != curMessage.imageUrl) {
