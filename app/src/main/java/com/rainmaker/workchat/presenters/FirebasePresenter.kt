@@ -6,7 +6,9 @@ import com.rainmaker.workchat.User
 
 /**
  * Created by dmitry on 2/8/18.
+ *
  */
+
 interface FirebasePresenter {
 
     interface FirebasePresenterListener{

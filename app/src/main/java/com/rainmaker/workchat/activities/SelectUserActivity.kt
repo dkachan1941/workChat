@@ -16,9 +16,9 @@ class SelectUserActivity : AppCompatActivity(), FirebasePresenter.FirebasePresen
     @Inject
     lateinit var firebasePresenter: FirebasePresenter
 
-    lateinit var usersRecyclerView: RecyclerView
-    lateinit var mLinearLayoutManager: LinearLayoutManager
-    lateinit var usersAdapter: UsersAdapter
+    private lateinit var usersRecyclerView: RecyclerView
+    private lateinit var mLinearLayoutManager: LinearLayoutManager
+    private lateinit var usersAdapter: UsersAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

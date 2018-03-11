@@ -73,9 +73,10 @@ class FirebasePresenterImpl: FirebasePresenter {
         if (user?.uuid == FirebaseAuth.getInstance().currentUser?.uid) return
         val mFirebaseDatabaseReference = FirebaseDatabase.getInstance().reference
         val ref = mFirebaseDatabaseReference.child(CHILD_USERS).child(user?.uuid).child(CHILD_NEW_MESSAGES).ref
+        val ti = object : GenericTypeIndicator<HashMap<String?, String?>?>() {}
         ref.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
-                var newMessages: HashMap<String?, String?>? = dataSnapshot.value as HashMap<String?, String?>?  // todo !!!
+                var newMessages: HashMap<String?, String?>? = dataSnapshot.getValue(ti)
                 if (newMessages != null) {
                     if (newMessages.containsKey(chatId)){
                         newMessages[chatId] = newMessages[chatId]?.toInt()?.plus(1).toString()

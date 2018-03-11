@@ -9,7 +9,6 @@ import android.widget.TextView
 import com.bluelinelabs.conductor.Controller
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
-import com.google.firebase.messaging.FirebaseMessaging
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.ValueEventListener
@@ -41,9 +40,10 @@ class PrivateChatRoomsController : Controller() {
     private fun setUpNewMessagesListener() {
         val mFirebaseDatabaseReference = FirebaseDatabase.getInstance().reference
         val ref = mFirebaseDatabaseReference.child(CHILD_USERS).child(mFirebaseAuth.currentUser?.uid ?: "").child(CHILD_NEW_MESSAGES).ref
+        val ti = object : GenericTypeIndicator<HashMap<String?, String?>?>() {}
         ref.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
-                val newMessages: HashMap<String?, String?>? = dataSnapshot.value as HashMap<String?, String?>?  // todo !!!
+                val newMessages: HashMap<String?, String?>? = dataSnapshot.getValue(ti)
                 if (newMessages != null) {
                     chatsList.forEachIndexed { index, chatModel1 ->
                         if (newMessages.containsKey(chatModel1?.key)){
@@ -68,10 +68,10 @@ class PrivateChatRoomsController : Controller() {
                         chatsList = chatsListTemp ?: mutableListOf()
                         setUpNewMessagesListener()
                         p0?.children?.mapIndexed { index, dataSnapshot ->
-                            chatsList?.get(index)?.key = dataSnapshot.key
+                            chatsList[index]?.key = dataSnapshot.key
                         }
                         mProgressBar.visibility = View.GONE
-                        if (chatsList?.size != null && chatsList.isNotEmpty()){
+                        if (chatsList.isNotEmpty()){
                             chatsAdapter.setData(ArrayList(chatsList))
                             chatsAdapter.notifyDataSetChanged()
                             textViewNoChats.visibility = View.GONE

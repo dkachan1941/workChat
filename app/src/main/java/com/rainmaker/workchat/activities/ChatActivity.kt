@@ -1,5 +1,6 @@
 package com.rainmaker.workchat.activities
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
@@ -31,17 +32,13 @@ import com.firebase.ui.database.SnapshotParser
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.api.GoogleApiClient
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.DatabaseReference
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.ValueEventListener
+import com.google.firebase.database.*
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
 import com.rainmaker.workchat.*
-import com.rainmaker.workchat.R.id.textInputLayoutChatEncriptionPassword
+import com.rainmaker.workchat.R
+import com.rainmaker.workchat.presenters.EncryptionPresenter
 import com.rainmaker.workchat.presenters.FirebasePresenter
-import org.w3c.dom.Text
 
 import java.util.HashMap
 
@@ -51,6 +48,9 @@ class ChatActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedList
 
     @Inject
     lateinit var firebasePresenter: FirebasePresenter
+
+    @Inject
+    lateinit var encryptionPresenter: EncryptionPresenter
 
     private lateinit var mUsername: String
     private lateinit var mPhotoUrl: String
@@ -115,7 +115,10 @@ class ChatActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedList
             }
         })
 
-        mFirebaseAdapter = ChatFireBaseAdapter(applicationContext, mSharedPreferences, chatId, this@ChatActivity, options, mFirebaseAuth.currentUser)
+        if (!mSharedPreferences.getString(chatId, "").isEmpty()){
+            encryptionPresenter.setKey(mSharedPreferences.getString(chatId, "").toByteArray())
+        }
+        mFirebaseAdapter = ChatFireBaseAdapter(applicationContext, encryptionPresenter, this@ChatActivity, options, mFirebaseAuth.currentUser)
         mFirebaseAdapter.registerAdapterDataObserver(object : RecyclerView.AdapterDataObserver() {
             override fun onItemRangeInserted(positionStart: Int, itemCount: Int) {
                 super.onItemRangeInserted(positionStart, itemCount)
@@ -158,8 +161,7 @@ class ChatActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedList
         return if (pw.isEmpty()){
             msg
         } else {
-            AESEncryptionDecryption.keyValue = mSharedPreferences.getString(chatId, "").toByteArray()
-            AESEncryptionDecryption.encrypt(msg)
+            encryptionPresenter.encrypt(msg)
         }
     }
 
@@ -254,6 +256,7 @@ class ChatActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedList
             }
             R.id.clear_encryption_key -> {
                 mSharedPreferences.edit().putString(chatId, "").apply()
+                encryptionPresenter.setKey(null)
                 mFirebaseAdapter.notifyDataSetChanged()
                 true
             }
@@ -261,10 +264,11 @@ class ChatActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedList
         }
     }
 
+    @SuppressLint("InflateParams")
     private fun showEncryptionKeyDialog() {
         val alert = AlertDialog.Builder(this)
         val inflater = this.layoutInflater
-        val dialogView = inflater.inflate(R.layout.set_encryption_key_dialog, null) // todo
+        val dialogView = inflater.inflate(R.layout.set_encryption_key_dialog, null)
         val passwordEditText = dialogView.findViewById<EditText>(R.id.dialog_editText_password)
 
         with (alert) {
@@ -291,6 +295,7 @@ class ChatActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedList
         if (password.isNotEmpty()){
             val encryptionPw = modifyEncryptionKey(password)
             mSharedPreferences.edit().putString(chatId, encryptionPw).apply()
+            encryptionPresenter.setKey(encryptionPw.toByteArray())
             mFirebaseAdapter.notifyDataSetChanged()
         }
     }
@@ -323,9 +328,10 @@ class ChatActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedList
                 val userName = data?.getStringExtra(USER_NAME)
                 // get existed users
                 val ref = mFirebaseDatabaseReference.child(CHILD_ROOMS).child(chatId).child(CHILD_USERS).ref
+                val ti = object : GenericTypeIndicator<HashMap<String?, String?>?>() {}
                 ref.addListenerForSingleValueEvent(object : ValueEventListener {
                     override fun onDataChange(dataSnapshot: DataSnapshot) {
-                        val users: HashMap<String?, String?>? = dataSnapshot.value as HashMap<String?, String?>?  // todo !!!
+                        val users: HashMap<String?, String?>? = dataSnapshot.getValue(ti)
                         if (users != null) {
                             if (!users.containsKey(userUid)) {
                                 users[userUid] = userName

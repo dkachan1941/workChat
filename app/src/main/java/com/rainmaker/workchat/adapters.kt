@@ -2,7 +2,6 @@ package com.rainmaker.workchat
 
 import android.content.Context
 import android.content.Intent
-import android.content.SharedPreferences
 import android.support.v4.content.ContextCompat
 import android.support.v4.content.ContextCompat.startActivity
 import android.support.v7.widget.CardView
@@ -23,11 +22,13 @@ import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.storage.FirebaseStorage
 import com.rainmaker.workchat.activities.ChatActivity
+import com.rainmaker.workchat.presenters.EncryptionPresenter
 import de.hdodenhof.circleimageview.CircleImageView
 
 /**
  * Adapter for chats list
  */
+
 class ChatsAdapter(var chatList: ArrayList<ChatModel1?>) : RecyclerView.Adapter<ChatsAdapter.ChatsViewHolder>() {
 
     fun setData(chatList: ArrayList<ChatModel1?>){
@@ -128,7 +129,7 @@ class UsersAdapter(var chatList: ArrayList<User?>, private val listener: (User) 
 /**
  * Adapter for Chat
  */
-class ChatFireBaseAdapter(private var context: Context, private val sharedPreferences: SharedPreferences, private val  chatId: String, private var listener: ChatAdapterListener, options: FirebaseRecyclerOptions<MessageModel>,
+class ChatFireBaseAdapter(private var context: Context, private val encryptionPresenter: EncryptionPresenter, private var listener: ChatAdapterListener, options: FirebaseRecyclerOptions<MessageModel>,
                           private var currentUser: FirebaseUser?): FirebaseRecyclerAdapter<MessageModel,
         ChatFireBaseAdapter.MessageViewHolder>(options) {
 
@@ -158,17 +159,11 @@ class ChatFireBaseAdapter(private var context: Context, private val sharedPrefer
         listener.onChatAdapterFirstItemLoaded()
         setMessageColor(viewHolder.messageLayout, currentUser, curMessage.userUid)
         if (curMessage.text != null) {
-            if (!sharedPreferences.getString(chatId, "").isEmpty()){
-                AESEncryptionDecryption.keyValue = sharedPreferences.getString(chatId, "").toByteArray()
-                try {
-                    viewHolder.messageTextView.text = AESEncryptionDecryption.decrypt(curMessage.text)
-                } catch (e: Exception){
-                    viewHolder.messageTextView.text =""
-                }
+            if (encryptionPresenter.getRawKey() != null){
+                viewHolder.messageTextView.text = encryptionPresenter.decrypt(curMessage.text ?: "")
             } else {
                 viewHolder.messageTextView.text = curMessage.text
             }
-//            viewHolder.messageTextView.text = curMessage.text
             viewHolder.messageTextView.visibility = TextView.VISIBLE
             viewHolder.messageImageView.visibility = ImageView.GONE
         } else if (LOADING_IMAGE_URL != curMessage.imageUrl) {
