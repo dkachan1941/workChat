@@ -42,6 +42,8 @@ class ChatModel1 {
     var date: String? = null
     var users:  HashMap<String, String> = HashMap()
     var key: String? = null
+    var visible: Boolean = true
+    var isPrivate: Boolean? = null
 
     constructor() {}
 

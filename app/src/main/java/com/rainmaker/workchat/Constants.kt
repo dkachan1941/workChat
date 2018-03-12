@@ -30,7 +30,7 @@ const val CHAT_NAME = "chatName"
 // fireBase db
 const val CHILD_ROOMS = "rooms"
 const val CHILD_USERS = "users"
-const val FIELD_IS_PUBLIC = "isPublic"
+const val FIELD_IS_PUBLIC = "private"
 const val CHILD_MESSAGES = "messages"
 const val CHILD_NEW_MESSAGES = "newMessages"
 

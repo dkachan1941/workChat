@@ -53,6 +53,11 @@ class ChatsAdapter(var chatList: ArrayList<ChatModel1?>) : RecyclerView.Adapter<
         private val badgeUnRedMessageCount = itemView?.findViewById<TextView>(R.id.badgeUnRedMessageCount)
 
         fun bind(item: ChatModel1) = with(itemView) {
+            if (item.visible) {
+                itemView.visibility = View.VISIBLE
+            } else  {
+                itemView.visibility = View.GONE
+            }
             chatName?.text = item.name
             if (item.messageCount ?: 0 > 0) {
                 badgeUnRedMessageCount?.text = item.messageCount?.toString()

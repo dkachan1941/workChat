@@ -4,9 +4,9 @@
     <string name="sign_out">Sign Out</string>
     <string name="contacts_permission_rationale">Access to account information is required to sign in.</string>
     <string name="invite_menu_label">Invite</string>
-    <string name="invitation_message">Please join me for a workchat</string>
+    <string name="invitation_message">Please join me for a Safe Chat</string>
     <string name="invitation_cta">Call to action</string>
-    <string name="invitation_title">WorkChat Invite</string>
+    <string name="invitation_title">SafeChat Invite</string>
     <string name="sign_in">Sign In</string>
     <string name="sign_up">Sign Up</string>
     <string name="fresh_config">Fresh Config</string>
@@ -20,7 +20,7 @@
     <string name="notification_message">You have a new message in %s</string>
     <string name="message_count">%s messages</string>
     <string name="last_message_from">The last message from: %s</string>
-    <string name="menu_title">Work chat</string>
+    <string name="menu_title">Safe chat</string>
     <string name="public_chats">Public chats</string>
     <string name="private_chats">Private chats</string>
     <string name="about">About</string>
@@ -56,4 +56,7 @@
     <string name="msg_create_chat_private_public">Public chat will be available for every user signed in this application, private chat will be available for you and users who you choose.</string>
     <string name="use_encryption_key">Set encryption password</string>
     <string name="clear_encryption_key">Clear encryption key</string>
+    <string name="no_new_events">No new events</string>
+    <string name="text_about">This is Android Chat Rooms Application based on Firebase Database with possibility to encrypt messages with a unique key.</string>
+    <string name="no_available_settings">No available settings.</string>
 </resources>

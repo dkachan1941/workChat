@@ -31,7 +31,7 @@ class PublicChatRoomsController : Controller() {
 
     private fun setUpFireBaseListener(view: View?) {
         FirebaseDatabase.getInstance()?.reference
-                ?.child(CHILD_ROOMS)?.ref?.orderByChild(FIELD_IS_PUBLIC)?.equalTo("true")
+                ?.child(CHILD_ROOMS)?.ref?.orderByChild(FIELD_IS_PUBLIC)?.equalTo(false)
                 ?.addValueEventListener(object : ValueEventListener{
             override fun onDataChange(p0: DataSnapshot?) {
                 val chatsList = p0?.children?.map { it.getValue(ChatModel1::class.java) }

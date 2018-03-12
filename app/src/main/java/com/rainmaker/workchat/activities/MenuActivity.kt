@@ -259,7 +259,7 @@ class MenuActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedList
     }
 
     private fun showExitConfirmationAlertDialog(dialogTitle: String, dialogMessage: String){
-        val alert = AlertDialog.Builder(this)
+        val alert = AlertDialog.Builder(this@MenuActivity)
 
         with (alert) {
             setTitle(dialogTitle)

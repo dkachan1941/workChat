@@ -83,7 +83,9 @@ class ChatActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedList
     }
 
     private fun setMessagesViewed() {
-        firebasePresenter.resetNewMessagesCount(mFirebaseAuth.currentUser?.uid, chatId)
+        if (mFirebaseAuth.currentUser?.uid != null){
+            firebasePresenter.resetNewMessagesCount(mFirebaseAuth.currentUser?.uid, chatId)
+        }
     }
 
     private fun setUpChatRecyclerView() {
@@ -117,6 +119,8 @@ class ChatActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedList
 
         if (!mSharedPreferences.getString(chatId, "").isEmpty()){
             encryptionPresenter.setKey(mSharedPreferences.getString(chatId, "").toByteArray())
+        } else {
+            encryptionPresenter.setKey(null)
         }
         mFirebaseAdapter = ChatFireBaseAdapter(applicationContext, encryptionPresenter, this@ChatActivity, options, mFirebaseAuth.currentUser)
         mFirebaseAdapter.registerAdapterDataObserver(object : RecyclerView.AdapterDataObserver() {

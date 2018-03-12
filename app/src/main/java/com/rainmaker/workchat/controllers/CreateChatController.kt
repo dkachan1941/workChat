@@ -1,5 +1,6 @@
 package com.rainmaker.workchat.controllers
 
+import android.content.Context
 import android.support.design.widget.TextInputLayout
 import android.view.LayoutInflater
 import android.view.View
@@ -14,6 +15,9 @@ import com.rainmaker.workchat.modifyEncryptionKey
 import com.rainmaker.workchat.presenters.FirebasePresenter
 import com.rainmaker.workchat.showAlertDialog
 import javax.inject.Inject
+import android.content.Context.INPUT_METHOD_SERVICE
+import android.view.inputmethod.InputMethodManager
+
 
 /**
  * Created by dmitry on 1/29/18.
@@ -74,7 +78,22 @@ class CreateChatController : Controller() {
         val encryptionPw = modifyEncryptionKey(textInputLayoutChatEncriptionPassword.editText?.text?.toString() ?: "")
 
         presenter.createChat(chatNameEditText.editText?.text.toString(), password, encryptionPw, isPrivate)
-        router.pushController(RouterTransaction.with(PrivateChatRoomsController()))
+
+        hideKeyBoard()
+
+        if (isPrivate){
+            router.pushController(RouterTransaction.with(PrivateChatRoomsController()))
+        } else {
+            router.pushController(RouterTransaction.with(PublicChatRoomsController()))
+        }
+    }
+
+    fun hideKeyBoard(){
+        val view = activity?.currentFocus
+        if (view != null) {
+            val imm = activity?.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+            imm.hideSoftInputFromWindow(view.windowToken, 0)
+        }
     }
 
 }

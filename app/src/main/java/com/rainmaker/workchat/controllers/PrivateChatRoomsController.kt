@@ -70,6 +70,7 @@ class PrivateChatRoomsController : Controller() {
                         p0?.children?.mapIndexed { index, dataSnapshot ->
                             chatsList[index]?.key = dataSnapshot.key
                         }
+                        chatsList = chatsList.filter { it?.isPrivate ?: false == true }
                         mProgressBar.visibility = View.GONE
                         if (chatsList.isNotEmpty()){
                             chatsAdapter.setData(ArrayList(chatsList))
