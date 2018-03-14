@@ -34,7 +34,7 @@ class PublicChatRoomsController : Controller() {
                 ?.child(CHILD_ROOMS)?.ref?.orderByChild(FIELD_IS_PUBLIC)?.equalTo(false)
                 ?.addValueEventListener(object : ValueEventListener{
             override fun onDataChange(p0: DataSnapshot?) {
-                val chatsList = p0?.children?.map { it.getValue(ChatModel1::class.java) }
+                val chatsList = p0?.children?.map { it.getValue(ChatModelNew::class.java) }
                 p0?.children?.mapIndexed { index, dataSnapshot ->
                     chatsList?.get(index)?.key = dataSnapshot.key
                 }

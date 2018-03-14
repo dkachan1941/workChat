@@ -29,9 +29,9 @@ import de.hdodenhof.circleimageview.CircleImageView
  * Adapter for chats list
  */
 
-class ChatsAdapter(var chatList: ArrayList<ChatModel1?>) : RecyclerView.Adapter<ChatsAdapter.ChatsViewHolder>() {
+class ChatsAdapter(var chatList: ArrayList<ChatModelNew?>) : RecyclerView.Adapter<ChatsAdapter.ChatsViewHolder>() {
 
-    fun setData(chatList: ArrayList<ChatModel1?>){
+    fun setData(chatList: ArrayList<ChatModelNew?>){
         this.chatList = chatList
         notifyDataSetChanged()
     }
@@ -52,12 +52,7 @@ class ChatsAdapter(var chatList: ArrayList<ChatModel1?>) : RecyclerView.Adapter<
         private val badgeMessageCount = itemView?.findViewById<TextView>(R.id.badgeMessageCount)
         private val badgeUnRedMessageCount = itemView?.findViewById<TextView>(R.id.badgeUnRedMessageCount)
 
-        fun bind(item: ChatModel1) = with(itemView) {
-            if (item.visible) {
-                itemView.visibility = View.VISIBLE
-            } else  {
-                itemView.visibility = View.GONE
-            }
+        fun bind(item: ChatModelNew) = with(itemView) {
             chatName?.text = item.name
             if (item.messageCount ?: 0 > 0) {
                 badgeUnRedMessageCount?.text = item.messageCount?.toString()

@@ -26,7 +26,7 @@ class PrivateChatRoomsController : Controller() {
     private lateinit var mProgressBar: ProgressBar
     private lateinit var textViewNoChats: TextView
     private lateinit var chatsAdapter: ChatsAdapter
-    private lateinit var chatsList: List<ChatModel1?>
+    private lateinit var chatsList: List<ChatModelNew?>
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup): View {
         val view = inflater.inflate(R.layout.activity_chat_rooms, container, false)
@@ -64,7 +64,7 @@ class PrivateChatRoomsController : Controller() {
                 .equalTo(mFirebaseAuth.currentUser?.displayName)
                 .addValueEventListener(object : ValueEventListener{
                     override fun onDataChange(p0: DataSnapshot?) {
-                        val chatsListTemp = p0?.children?.map { it.getValue(ChatModel1::class.java) }
+                        val chatsListTemp = p0?.children?.map { it.getValue(ChatModelNew::class.java) }
                         chatsList = chatsListTemp ?: mutableListOf()
                         setUpNewMessagesListener()
                         p0?.children?.mapIndexed { index, dataSnapshot ->

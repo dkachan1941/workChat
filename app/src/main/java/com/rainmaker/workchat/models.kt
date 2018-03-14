@@ -32,7 +32,7 @@ class ChatModel {
     }
 }
 
-class ChatModel1 {
+class ChatModelNew {
 
     var id: String? = null
     var name: String? = null
