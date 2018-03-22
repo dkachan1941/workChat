@@ -129,6 +129,7 @@ class FirebasePresenterImpl: FirebasePresenter {
         ref.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 val newMessages: HashMap<String?, String?> = HashMap()
+                dataSnapshot.children.forEach { newMessages[it.key] = it.value.toString() }
                 newMessages[chatId] = "0"
                 mFirebaseDatabaseReference.child(CHILD_USERS).child(uuid).child(CHILD_NEW_MESSAGES).setValue(newMessages)
             }

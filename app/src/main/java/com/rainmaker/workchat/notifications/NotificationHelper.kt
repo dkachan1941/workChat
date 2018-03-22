@@ -47,6 +47,7 @@ class NotificationHelper(base: Context) : ContextWrapper(base) {
         notificationChannel.lightColor = Color.RED
         notificationChannel.setShowBadge(true)
         notificationChannel.lockscreenVisibility = Notification.VISIBILITY_PUBLIC
+        notificationChannel.importance = NotificationManager.IMPORTANCE_HIGH
         manager.createNotificationChannel(notificationChannel)
     }
 
@@ -79,10 +80,10 @@ class NotificationHelper(base: Context) : ContextWrapper(base) {
         mBuilder.setContentText(title)
         mBuilder.setStyle(bigText)
         mBuilder.setContentIntent(contentIntent)
-        mBuilder.setAutoCancel(true)
         mBuilder.setStyle(bigText)
         mBuilder.setContentIntent(contentIntent)
-        mBuilder.setAutoCancel(true)
+        mBuilder.setPriority(Notification.PRIORITY_HIGH)
+///        mBuilder.setPriority(NotificationManager.IMPORTANCE_HIGH)
         val uri = RingtoneManager
                 .getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
         mBuilder.setSound(uri)  //todo

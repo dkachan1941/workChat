@@ -56,3 +56,5 @@ const val NOTIFICATION_JOB_TAG = "notification-job-tag"
 // shared preferences
 const val PREFERENCES_NAME = "safePrefsName"
 
+val PREFERENCES_NAME1 = "safePrefsName"
+

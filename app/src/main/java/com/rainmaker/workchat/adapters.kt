@@ -231,3 +231,39 @@ class ChatFireBaseAdapter(private var context: Context, private val encryptionPr
     }
 
 }
+
+/**
+ * Adapter for Home Controller
+ */
+
+class EventsAdapter(var chatList: ArrayList<ChatModelNew?>) : RecyclerView.Adapter<EventsAdapter.EventsViewHolder>() {
+
+    fun setData(chatList: ArrayList<ChatModelNew?>){
+        this.chatList = chatList
+        notifyDataSetChanged()
+    }
+
+    override fun onCreateViewHolder(parent: ViewGroup?, viewType: Int): EventsViewHolder {
+        return EventsViewHolder(LayoutInflater.from(parent?.context).inflate(R.layout.event_item, parent, false))
+    }
+
+    override fun getItemCount(): Int {
+        return chatList.size
+    }
+
+    override fun onBindViewHolder(holder: EventsViewHolder?, position: Int): Unit = holder?.bind(chatList[position]!!)!!
+
+    class EventsViewHolder(itemView: View?) : RecyclerView.ViewHolder(itemView) {
+        private val chatName = itemView?.findViewById<TextView>(R.id.chatName)
+
+        fun bind(item: ChatModelNew) = with(itemView) {
+            chatName?.text = item.name
+            setOnClickListener {
+                val intent = Intent(itemView.context, ChatActivity::class.java)
+                intent.putExtra(CHAT_ID, item.key)
+                intent.putExtra(CHAT_NAME, item.name)
+                startActivity(itemView.context, intent, null)
+            }
+        }
+    }
+}

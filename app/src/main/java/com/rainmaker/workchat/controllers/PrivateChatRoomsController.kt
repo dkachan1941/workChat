@@ -15,87 +15,57 @@ import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.DatabaseReference
 import com.rainmaker.workchat.*
 import com.rainmaker.workchat.R
+import com.rainmaker.workchat.presenters.ChatsPresenter
+import com.rainmaker.workchat.presenters.ChatsPresenterImpl
+import com.rainmaker.workchat.repository.ChatsRepositoryImpl
 import java.util.HashMap
 
-class PrivateChatRoomsController : Controller() {
+class PrivateChatRoomsController : Controller(), ChatsPresenter.chatsView {
 
-    private lateinit var mFirebaseDatabaseReference: DatabaseReference
     private lateinit var mMessageRecyclerView: RecyclerView
     private lateinit var mLinearLayoutManager: LinearLayoutManager
-    private lateinit var mFirebaseAuth: FirebaseAuth
     private lateinit var mProgressBar: ProgressBar
     private lateinit var textViewNoChats: TextView
     private lateinit var chatsAdapter: ChatsAdapter
-    private lateinit var chatsList: List<ChatModelNew?>
+
+    private val chatsPresenter: ChatsPresenter by lazy {
+        ChatsPresenterImpl(this@PrivateChatRoomsController, ChatsRepositoryImpl())
+    }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup): View {
         val view = inflater.inflate(R.layout.activity_chat_rooms, container, false)
-        mFirebaseAuth = FirebaseAuth.getInstance()
-        chatsAdapter = ChatsAdapter(ArrayList())
         setUpViews(view)
-        setUpFireBaseListener(view)
+
+        // load
+        chatsPresenter.loadPrivateChats()
+        chatsPresenter.loadNewMessagesCountForChats()
+
         return view
     }
 
-    private fun setUpNewMessagesListener() {
-        val mFirebaseDatabaseReference = FirebaseDatabase.getInstance().reference
-        val ref = mFirebaseDatabaseReference.child(CHILD_USERS).child(mFirebaseAuth.currentUser?.uid ?: "").child(CHILD_NEW_MESSAGES).ref
-        val ti = object : GenericTypeIndicator<HashMap<String?, String?>?>() {}
-        ref.addValueEventListener(object : ValueEventListener {
-            override fun onDataChange(dataSnapshot: DataSnapshot) {
-                val newMessages: HashMap<String?, String?>? = dataSnapshot.getValue(ti)
-                if (newMessages != null) {
-                    chatsList.forEachIndexed { index, chatModel1 ->
-                        if (newMessages.containsKey(chatModel1?.key)){
-                            chatsList[index]?.messageCount = newMessages[chatModel1?.key]?.toInt()
-                            chatsAdapter.notifyItemChanged(index)
-                        }
-                    }
-                }
-            }
-
-            override fun onCancelled(databaseError: DatabaseError) {}
-        })
-    }
-
-    private fun setUpFireBaseListener(view: View) {
-        mFirebaseDatabaseReference.child(CHILD_ROOMS).ref
-                .orderByChild("$CHILD_USERS/${mFirebaseAuth.currentUser?.uid}")
-                .equalTo(mFirebaseAuth.currentUser?.displayName)
-                .addValueEventListener(object : ValueEventListener{
-                    override fun onDataChange(p0: DataSnapshot?) {
-                        val chatsListTemp = p0?.children?.map { it.getValue(ChatModelNew::class.java) }
-                        chatsList = chatsListTemp ?: mutableListOf()
-                        setUpNewMessagesListener()
-                        p0?.children?.mapIndexed { index, dataSnapshot ->
-                            chatsList[index]?.key = dataSnapshot.key
-                        }
-                        chatsList = chatsList.filter { it?.isPrivate ?: false == true }
-                        mProgressBar.visibility = View.GONE
-                        if (chatsList.isNotEmpty()){
-                            chatsAdapter.setData(ArrayList(chatsList))
-                            chatsAdapter.notifyDataSetChanged()
-                            textViewNoChats.visibility = View.GONE
-                        } else {
-                            textViewNoChats.visibility = View.VISIBLE
-                        }
-                    }
-
-                    override fun onCancelled(p0: DatabaseError?) {
-                        Log.d(TAG, view.context?.getString(R.string.err_making_request))
-                    }
-                })
-    }
-
     private fun setUpViews(view: View) {
+        chatsAdapter = ChatsAdapter(ArrayList())
         mProgressBar = view.findViewById(R.id.progressBar)
         mProgressBar.visibility = View.VISIBLE
         mMessageRecyclerView = view.findViewById(R.id.roomsRrecyclerView)
         mMessageRecyclerView.adapter = chatsAdapter
         mLinearLayoutManager = LinearLayoutManager(view.context)
-        mFirebaseDatabaseReference = FirebaseDatabase.getInstance().reference
         mMessageRecyclerView.layoutManager = mLinearLayoutManager
         textViewNoChats = view.findViewById(R.id.textViewNoChats)
+        mMessageRecyclerView.visibility = View.GONE
+    }
+
+    override fun displayNoChats() {
+        mMessageRecyclerView.visibility = View.GONE
+        textViewNoChats.visibility = View.VISIBLE
+    }
+
+    override fun displayChats(chats: MutableList<ChatModelNew>) {
+        mProgressBar.visibility = View.GONE
+        textViewNoChats.visibility = View.GONE
+        mMessageRecyclerView.visibility = View.VISIBLE
+        chatsAdapter.setData(ArrayList(chats))
+        chatsAdapter.notifyDataSetChanged()
     }
 
 }

@@ -9,6 +9,7 @@ import com.rainmaker.workchat.repository.ChatsRepository
  */
 
 class HomePresenterImpl(private val homeView: HomePresenter.HomeView, private val chatsRepository: ChatsRepository) : HomePresenter, HomePresenter.RepositoryCallbacks {
+
     override fun onChatsLoaded(chats: MutableList<ChatModelNew?>) {
         if (chats.size == 0){
             homeView.showNoChats()
